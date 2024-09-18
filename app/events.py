@@ -1,10 +1,9 @@
 from slack_sdk.web import WebClient
 from slack_bolt.context.say import Say
 from .core import slack_app
-from .config import TELESCOPE_EMOJI
+from .config import TELESCOPE_EMOJI, TEXT_PREVIEW_CHAR_LIMIT
 import json
 
-print("Yo")
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(event, client: WebClient, say: Say):    
@@ -18,19 +17,20 @@ def handle_reaction_added(event, client: WebClient, say: Say):
     
     item = event["item"]
     item_channel = item["channel"]
-    item_user = event["item_user"]
     resp = client.conversations_replies(
         channel=item_channel,
         ts=item["ts"],
         limit=1
     )
     message = resp["messages"][0]
-    
+        
     resp = client.users_profile_get(user=event["user"])
-    profile = resp["profile"]
-    username = profile["real_name"]
-    print(profile)
-    user_img = profile["image_512"]
+    tagger_profile = resp["profile"]
+    tagger_name = tagger_profile["real_name"]
+    
+    resp = client.users_profile_get(user=event["item_user"])
+    author_profile = resp["profile"]
+    author_name = author_profile["real_name"]
     
     resp = client.chat_getPermalink(
         channel=item_channel,
@@ -41,6 +41,15 @@ def handle_reaction_added(event, client: WebClient, say: Say):
     print(json.dumps(message, indent=2))
     print(event["user"], event["reaction"], message["text"])
     
+    message_text = message["text"]
+    if len(message_text) > TEXT_PREVIEW_CHAR_LIMIT:
+        truncated_text = message_text[:TEXT_PREVIEW_CHAR_LIMIT] + "..."
+    else:
+        truncated_text = message_text
+        
+    indented_text = "\n".join(
+        ["> " + line for line in truncated_text.splitlines()])
+        
     say(
         unfurl_links=False,
         blocks=[
@@ -48,7 +57,7 @@ def handle_reaction_added(event, client: WebClient, say: Say):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"```{message['text']}```"
+                    "text": f"Posted by *{author_name}*\n" + indented_text
                 }
             },
             {
@@ -56,7 +65,7 @@ def handle_reaction_added(event, client: WebClient, say: Say):
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": f"<#{item_channel}> | Tagged by {username} | <{permalink}|Jump to message>"
+                        "text": f"<#{item_channel}> | Tagged by {tagger_name} | <{permalink}|Jump to message>"
                     }
                 ]
             },

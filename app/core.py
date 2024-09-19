@@ -7,4 +7,3 @@ slack_app = App(
     signing_secret=SLACK_SIGNING_SECRET,
     # raise_error_for_unhandled_request=False
 )
-

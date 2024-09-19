@@ -1,2 +1,3 @@
 slack_bolt
 python-dotenv
+git+https://github.com/BlockScience/rid-lib.git@v3

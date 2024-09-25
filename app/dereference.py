@@ -21,7 +21,7 @@ dereference_table = {
     SlackMessage: dereference_slack_message
 }
 
-def auto_derefence(rid: RID):
+def auto_dereference(rid: RID):
     dereference_func = dereference_table.get(type(rid))
     
     if dereference_func:

@@ -5,7 +5,7 @@ from rid_lib.types import SlackMessage, SlackUser
 
 from .core import slack_app
 from .config import TELESCOPE_EMOJI
-from .dereference import auto_derefence
+from .dereference import auto_dereference
 from .utils import indent_text, truncate_text
 
 
@@ -36,10 +36,10 @@ def handle_reaction_added(body, event, client: WebClient, say: Say):
     print(f"{tagger} tagged message from {author}")
     
 
-    message_data = auto_derefence(tagged_msg)
+    message_data = auto_dereference(tagged_msg)
     
-    tagger_name = auto_derefence(tagger)["real_name"]
-    author_name = auto_derefence(author)["real_name"]
+    tagger_name = auto_dereference(tagger)["real_name"]
+    author_name = auto_dereference(author)["real_name"]
     
     resp = client.chat_getPermalink(
         channel=tagged_msg.channel_id,
@@ -92,7 +92,7 @@ def handle_reaction_added(body, event, client: WebClient, say: Say):
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "Cancel"
+                            "text": "Ignore"
                         },
                         "action_id": "cancel_button",
                         "value": action_payload

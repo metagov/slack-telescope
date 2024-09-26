@@ -1,11 +1,11 @@
-import json
+import json, re
 from slack_sdk.web import WebClient
 from slack_bolt.context.say import Say
 from rid_lib.types import SlackMessage, SlackUser
 
 from .core import slack_app
-from .config import TELESCOPE_EMOJI
-from .dereference import auto_dereference
+from .config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
+from .dereference import deref
 from .utils import indent_text, truncate_text
 
 
@@ -35,26 +35,41 @@ def handle_reaction_added(body, event, client: WebClient, say: Say):
     
     print(f"{tagger} tagged message from {author}")
     
-
-    message_data = auto_dereference(tagged_msg)
-    
-    tagger_name = auto_dereference(tagger)["real_name"]
-    author_name = auto_dereference(author)["real_name"]
+    message_data = deref(tagged_msg)
+    tagger_name = deref(tagger)["real_name"]
+    author_name = deref(author)["real_name"]
     
     resp = client.chat_getPermalink(
         channel=tagged_msg.channel_id,
         message_ts=tagged_msg.message_id
     )
     permalink = resp["permalink"]
-        
-    indented_text = indent_text(truncate_text(message_data["text"]))
     
+    truncated_text = truncate_text(message_data["text"])
+    
+    def replace_match(match):
+        try:
+            user = SlackUser(team_id, match.group(1))
+            user_data = deref(user)
+            if not user_data or type(user_data) != dict:
+                return match.group(0)
+            else:
+                return "@" + user_data.get("real_name")
+        except Exception:
+            return match.group(0)
+        
+    
+    filtered_text = re.sub(r"<@(\w+)>", replace_match, truncated_text)
+    
+    indented_text = indent_text(filtered_text)
+        
     action_payload = json.dumps({
         "user": str(author),
         "message": str(tagged_msg)
     })
     
     say(
+        channel=OBSERVATORY_CHANNEL_ID,
         unfurl_links=False,
         text=indented_text,
         blocks=[

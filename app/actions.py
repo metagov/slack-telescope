@@ -5,7 +5,7 @@ from rid_lib.core import RID
 from rid_lib.types import SlackMessage
 
 from .core import slack_app
-from .dereference import auto_dereference
+from .dereference import deref
 from .utils import indent_text, truncate_text
 
 
@@ -50,7 +50,7 @@ def handle_block_action(ack, action, body, client: WebClient, say: Say):
     
     user = action_payload["user"]
     message = action_payload["message"]
-    message_data = auto_dereference(message)
+    message_data = deref(message)
     
     indented_text = indent_text(truncate_text(message_data["text"]))
     

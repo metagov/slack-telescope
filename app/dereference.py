@@ -1,8 +1,7 @@
 from rid_lib.core import RID
 from rid_lib.types import SlackMessage, SlackUser
 
-from .core import slack_app
-
+from .core import slack_app, cache
 
 def dereference_slack_user(user: SlackUser):
     resp = slack_app.client.users_profile_get(user=user.user_id)
@@ -21,10 +20,18 @@ dereference_table = {
     SlackMessage: dereference_slack_message
 }
 
-def auto_dereference(rid: RID):
+def deref(rid: RID):
     dereference_func = dereference_table.get(type(rid))
+    cache_obj = cache.read(rid)
+        
+    if cache_obj:
+        print(rid, "hit cache")
+        return cache_obj.data
     
     if dereference_func:
-        return dereference_func(rid)
+        print(rid, "dereferenced")
+        data = dereference_func(rid)
+        cache.write(rid, data)
+        return data
     else:
         raise Exception(f"No dereference func defined for '{type(rid)}'")

@@ -8,6 +8,10 @@ TEXT_PREVIEW_CHAR_LIMIT = 500
 CACHE_DIR = "cache"
 PERSISTENT_DIR = "persistent"
 
+NEO4J_URI = "bolt://localhost:7687"
+NEO4J_AUTH = ("neo4j", "telescope")
+NEO4J_DB = "neo4j"
+
 OBSERVATORY_CHANNEL_ID = "C077AFMMFGX"
 
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]

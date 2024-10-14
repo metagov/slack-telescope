@@ -4,13 +4,29 @@ from .config import PERSISTENT_DIR
 from .utils import encode_b64
 
 
+class UserStatus:
+    UNSET = None
+    PENDING = "pending"
+    OPT_IN = "opt_in"
+    OPT_IN_ANON = "opt_in_anon"
+    OPT_OUT = "opt_out"
+
 class PersistentUser:
     _directory = PERSISTENT_DIR
+    _table = {}
+    
+    @classmethod
+    def safe_init(cls, rid: RID):
+        p_user = cls._table.get(str(rid))
+        if not p_user:
+            p_user = cls(rid)
+            cls._table[str(rid)] = p_user
+        return p_user
     
     def __init__(self, rid: RID):
         self.rid = rid
         self._data = self._read() or {
-            "status": None,
+            "status": UserStatus.UNSET,
             "msg_queue": []
         }
         
@@ -31,6 +47,11 @@ class PersistentUser:
     @property
     def msg_queue(self):
         return self._data["msg_queue"]
+    
+    @msg_queue.setter
+    def msg_queue(self, value):
+        self._data["msg_queue"] = value
+        self._write()
     
     def enqueue(self, rid: RID):
         self._data["msg_queue"].append(str(rid))

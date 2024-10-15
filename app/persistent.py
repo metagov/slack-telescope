@@ -4,64 +4,27 @@ from .config import PERSISTENT_DIR
 from .utils import encode_b64
 
 
-class UserStatus:
-    UNSET = None
-    PENDING = "pending"
-    OPT_IN = "opt_in"
-    OPT_IN_ANON = "opt_in_anon"
-    OPT_OUT = "opt_out"
-
-class PersistentUser:
+class PersistentObject:
     _directory = PERSISTENT_DIR
-    _table = {}
+    _instances = {}
     
-    @classmethod
-    def safe_init(cls, rid: RID):
-        p_user = cls._table.get(str(rid))
-        if not p_user:
-            p_user = cls(rid)
-            cls._table[str(rid)] = p_user
-        return p_user
+    def __new__(cls, rid: RID):
+        if str(rid) not in cls._instances:
+            print("creating new instance")
+            inst = super().__new__(cls)
+            cls._instances[str(rid)] = inst
+        return cls._instances[str(rid)]
     
-    def __init__(self, rid: RID):
+    def __init__(self, rid: RID, default_data: dict = {}):
         self.rid = rid
-        self._data = self._read() or {
-            "status": UserStatus.UNSET,
-            "msg_queue": []
-        }
+        self._data = self._read() or default_data
+        self._write()
         
     @property
     def _file_path(self):
         encoded_rid_str = encode_b64(str(self.rid))
         return f"{self._directory}/{encoded_rid_str}.json"
     
-    @property
-    def status(self):
-        return self._data["status"]
-
-    @status.setter
-    def status(self, value):
-        self._data["status"] = value
-        self._write()
-        
-    @property
-    def msg_queue(self):
-        return self._data["msg_queue"]
-    
-    @msg_queue.setter
-    def msg_queue(self, value):
-        self._data["msg_queue"] = value
-        self._write()
-    
-    def enqueue(self, rid: RID):
-        self._data["msg_queue"].append(str(rid))
-        self._write()
-        
-    def dequeue(self):
-        elem = self._data["msg_queue"].pop(0)
-        self._write()
-        return RID.from_string(elem)
-        
     def _read(self):
         try:
             with open(self._file_path, "r") as f:
@@ -76,3 +39,70 @@ class PersistentUser:
             
         with open(self._file_path, "w") as f:
             json.dump(self._data, f, indent=2)
+    
+def persistent_prop(attribute, rid=False):
+    def getter(self: PersistentObject):
+        value = self._data[attribute]
+        return RID.from_string(value) if rid else value
+    
+    def setter(self: PersistentObject, value):
+        self._data[attribute] = str(value) if rid else value
+        self._write()
+    
+    return property(getter, setter)
+
+
+class UserStatus:
+    UNSET = None
+    PENDING = "pending"
+    OPT_IN = "opt_in"
+    OPT_IN_ANON = "opt_in_anon"
+    OPT_OUT = "opt_out"
+
+class PersistentUser(PersistentObject):
+    _instances = {}
+    
+    status = persistent_prop("status")
+    msg_queue = persistent_prop("msg_queue")
+    
+    def __init__(self, rid: RID):
+        super().__init__(rid, {
+            "status": UserStatus.UNSET,
+            "msg_queue": []
+        })
+    
+    def enqueue(self, obj):
+        self._data["msg_queue"].append(str(obj))
+        self._write()
+        
+    def dequeue(self):
+        elem = self._data["msg_queue"].pop(0)
+        self._write()
+        return RID.from_string(elem)
+        
+
+class MessageStatus:
+    UNSET = None
+    TAGGED = "tagged"
+    REQUESTED = "requested"
+    IGNORED = "ignored"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    RETRACTED = "retracted"
+
+class PersistentMessage(PersistentObject):
+    _instances = {}
+    
+    status = persistent_prop("status")
+    anonymous = persistent_prop("anonymous")
+    interaction = persistent_prop("interaction", rid=True)
+    author = persistent_prop("author", rid=True)
+    tagger = persistent_prop("tagger", rid=True)
+    
+    def __init__(self, rid: RID):
+        super().__init__(rid, {
+            "status": MessageStatus.UNSET,
+            "anonymous": False
+        })
+        
+    

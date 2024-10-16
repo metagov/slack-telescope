@@ -12,3 +12,5 @@ slack_app = App(
 
 cache = CacheInterface(CACHE_DIR)
 graph = GraphInterface(NEO4J_URI, NEO4J_AUTH, NEO4J_DB)
+
+workspace_id = slack_app.client.team_info().data["team"]["id"]

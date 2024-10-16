@@ -4,6 +4,7 @@ from .dereference import deref, transform
 from .persistent import PersistentMessage
 from .config import TEXT_PREVIEW_CHAR_LIMIT
 from .constants import ActionId, BlockId, status_emojis
+from .core import workspace_id
 
 
 # formatting helper functions
@@ -23,7 +24,7 @@ def filter_text(string: str):
     # replaces all @mentions
     def replace_match(match):
         try:
-            user_data = deref(SlackUser("", match.group(1)))
+            user_data = deref(SlackUser(workspace_id, match.group(1)))
             if not user_data or type(user_data) != dict:
                 return match.group(0)
             else:

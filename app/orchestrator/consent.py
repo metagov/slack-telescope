@@ -11,21 +11,28 @@ def create_consent_interaction(message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
     p_user.status = UserStatus.PENDING
-        
+    
+    slack_app.client.chat_postMessage(
+        channel=p_user.rid.user_id,
+        unfurl_links=False,
+        blocks=[
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Welcome to the Observatory! You are receiving this notice because one of your messages has been tagged for observation. Your decision to opt in or out will apply to this message and all future messages observed by Telescope. If you chose to opt in, you will be informed when new messages are observed and have the option to retract them."
+                }
+            }
+        ]
+    )
+    
     resp = slack_app.client.chat_postMessage(
         channel=p_user.rid.user_id,
         unfurl_links=False,
         blocks=[
             build_consent_msg_ref(message),
             build_msg_context_row(message, p_message.tagger),
-            build_consent_interaction_row(message),
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "Your decision to opt in or out will apply to this message and all future messages observed by Telescope. If you chose to opt in, you will be informed when new messages are observed and have the option to retract them."
-                }
-            }
+            build_consent_interaction_row(message)
         ]
     )
     

@@ -3,7 +3,7 @@ from slack_sdk.errors import SlackApiError
 from rid_lib.types import SlackWorkspace, SlackChannel, SlackUser, SlackMessage
 
 from app.core import slack_app
-from app.dereference import deref
+from app import orchestrator
 
 
 def observe_workspace():
@@ -25,6 +25,9 @@ def observe_workspace():
         
         print(channel_rid, "#" + channel["name"])
         channel_rids.append(channel_rid)
+        
+        if channel_id != "C06DMGNV7E0":
+            continue
         
         observed_messages = 0
         total_messages = 0
@@ -61,8 +64,6 @@ def observe_workspace():
                     
                 print()
                 # add threaded_messages to parent if parent was observed
-                if message_rid:
-                    deref(message_rid)
                     
                     # make_request(CREATE, OBJECT_LINK, rid=message_rid, tag="has_messages", members=threaded_message_rids)
                 # make_request(CREATE, OBJECT_LINK, rid=channel_rid, tag="has_messages", members=threaded_message_rids)
@@ -138,6 +139,7 @@ def observe_message(message, workspace_id, channel_id):
     for reaction in reactions:
         if reaction["name"] == "telescope":
             found_telescope = True
+            tagger_rid = SlackUser(workspace_id, reaction["users"][-1])
             break
         
     if not found_telescope:
@@ -146,14 +148,11 @@ def observe_message(message, workspace_id, channel_id):
     message_id = message["ts"]
     user_id = message["user"]
     
-    message_rid = SlackMessage(workspace_id, channel_id, message_id)
-        
-    user_rid = SlackUser(workspace_id, user_id)
-    # make_request(CREATE, OBJECT, rid=user_rid)
-    # make_request(CREATE, OBJECT, rid=message_rid, data=message, embed=False)
-    # add messages to user
-    # make_request(CREATE, OBJECT_LINK, rid=user_rid, tag="wrote_messages", members=[message_rid])
+    message_rid = SlackMessage(workspace_id, channel_id, message_id)        
+    author_rid = SlackUser(workspace_id, user_id)
     
+    orchestrator.create_request_interaction(message_rid, author_rid, tagger_rid)
+
     return message_rid
             
 def get_threaded_messages(channel_id, thread_id):

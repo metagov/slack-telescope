@@ -19,6 +19,7 @@ class PersistentObject:
     def __init__(self, rid: RID, default_data: dict = {}):
         self.rid = rid
         self._data = self._read() or default_data
+        self._data["rid"] = str(rid)
         self._write()
         
     @property

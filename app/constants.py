@@ -19,8 +19,8 @@ status_emojis = {
     MessageStatus.REQUESTED: ":hourglass_flowing_sand:",
     MessageStatus.IGNORED: ":wave:",
     MessageStatus.ACCEPTED: ":white_check_mark:",
-    MessageStatus.REJECTED: ":x:", # :no_entry_sign:
-    MessageStatus.RETRACTED: ":arrow_right_hook:"
+    MessageStatus.REJECTED: ":x:",
+    MessageStatus.RETRACTED: ":no_entry_sign:"
 }
     
 class ActionId:

@@ -2,7 +2,8 @@ from rid_lib.types import SlackMessage
 
 from app.core import slack_app
 from app.config import OBSERVATORY_CHANNEL_ID
-from app.persistent import PersistentMessage, MessageStatus, PersistentUser, UserStatus
+from app.persistent import PersistentMessage, PersistentUser
+from app.constants import MessageStatus, UserStatus, ActionId
 from app.components import *
 from .consent import create_consent_interaction
 from .retract import create_retract_interaction
@@ -11,7 +12,7 @@ from .helpers import refresh_request_interaction
 
 def create_request_interaction(message, author, tagger):
     print(f"{tagger} tagged message from {author}")
-                
+    
     p_message = PersistentMessage(message)
     
     # message previously been tagged and handled   
@@ -33,7 +34,7 @@ def create_request_interaction(message, author, tagger):
         ]
     )
     
-    p_message.interaction = SlackMessage(
+    p_message.request_interaction = SlackMessage(
         resp["message"]["team"],
         resp["channel"],
         resp["message"]["ts"]
@@ -43,12 +44,13 @@ def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)  
     
-    if action_id == "ignore":
-        slack_app.client.chat_delete(
-            channel=p_message.interaction.channel_id,
-            ts=p_message.interaction.message_id
-        )
+    if action_id == ActionId.IGNORE:
+        # slack_app.client.chat_delete(
+        #     channel=p_message.request_interaction.channel_id,
+        #     ts=p_message.request_interaction.message_id
+        # )
         p_message.status = MessageStatus.IGNORED
+        refresh_request_interaction(message)
         return
         
     if p_user.status == UserStatus.UNSET:

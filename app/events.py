@@ -1,7 +1,7 @@
 from rid_lib.types import SlackMessage, SlackUser
 
 from .core import slack_app
-from .config import TELESCOPE_EMOJI
+from .config import TELESCOPE_EMOJI, SLACK_BOT_USER_ID
 from . import orchestrator
 
 
@@ -15,7 +15,7 @@ def handle_reaction_added(body, event):
         print("ignoring non telescope emoji")
         return
     
-    if event["item_user"] == "U07LXBE9JFL":
+    if event["item_user"] == SLACK_BOT_USER_ID:
         print("ignoring self authored message")
         return
     

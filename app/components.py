@@ -3,6 +3,7 @@ from rid_lib.types import HTTP, SlackUser
 from .dereference import deref, transform
 from .persistent import PersistentMessage
 from .config import TEXT_PREVIEW_CHAR_LIMIT
+from .constants import ActionId, BlockId, status_emojis
 
 
 # formatting helper functions
@@ -80,11 +81,14 @@ def build_retract_msg_ref(message):
     }
 
 def build_request_msg_status(message):
+    status_text = PersistentMessage(message).status
+    status_emoji = status_emojis[status_text]
+    
     return {
         "type": "context",
         "elements": [{
             "type": "mrkdwn",
-            "text": f"Status: {PersistentMessage(message).status}"
+            "text": f"Status: {status_text.capitalize()} {status_emoji}"
         }]
     }
 
@@ -92,7 +96,7 @@ def build_request_interaction_row(rid):
     payload = str(rid)
     return {
         "type": "actions",
-        "block_id": "request",
+        "block_id": BlockId.REQUEST,
         "elements": [
             {
                 "type": "button",
@@ -101,7 +105,7 @@ def build_request_interaction_row(rid):
                     "text": "Request"
                 },
                 "style": "primary",
-                "action_id": "request",
+                "action_id": ActionId.REQUEST,
                 "value": payload
             },
             {
@@ -110,7 +114,7 @@ def build_request_interaction_row(rid):
                     "type": "plain_text",
                     "text": "Ignore"
                 },
-                "action_id": "ignore",
+                "action_id": ActionId.IGNORE,
                 "value": payload
             }
         ]
@@ -120,7 +124,7 @@ def build_consent_interaction_row(rid):
     payload = str(rid)
     return {
         "type": "actions",
-        "block_id": "consent",
+        "block_id": BlockId.CONSENT,
         "elements": [
             {
                 "type": "button",
@@ -129,7 +133,7 @@ def build_consent_interaction_row(rid):
                     "text": "Opt in"
                 },
                 "style": "primary",
-                "action_id": "opt_in",
+                "action_id": ActionId.OPT_IN,
                 "value": payload
             },
             {
@@ -139,7 +143,7 @@ def build_consent_interaction_row(rid):
                     "text": "Opt in (anonymously)"
                 },
                 "style": "primary",
-                "action_id": "opt_in_anon",
+                "action_id": ActionId.OPT_IN_ANON,
                 "value": payload
             },
             {
@@ -148,7 +152,7 @@ def build_consent_interaction_row(rid):
                     "type": "plain_text",
                     "text": "Opt out"
                 },
-                "action_id": "opt_out",
+                "action_id": ActionId.OPT_OUT,
                 "value": payload
             }
         ]
@@ -158,7 +162,7 @@ def build_retract_interaction_row(rid):
     payload = str(rid)
     return {
         "type": "actions",
-        "block_id": "retract",
+        "block_id": BlockId.RETRACT,
         "elements": [
             {
                 "type": "button",
@@ -167,7 +171,7 @@ def build_retract_interaction_row(rid):
                     "text": "Retract"
                 },
                 "style": "danger",
-                "action_id": "retract",
+                "action_id": ActionId.RETRACT,
                 "value": payload
             }
         ]

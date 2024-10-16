@@ -1,9 +1,10 @@
 from rid_lib.core import RID
 from .core import slack_app
+from .constants import BlockId
 from . import orchestrator
 
 
-@slack_app.action({"block_id": "request"})
+@slack_app.action({"block_id": BlockId.REQUEST})
 def handle_request_action(ack, action):
     ack()
         
@@ -13,7 +14,7 @@ def handle_request_action(ack, action):
     orchestrator.handle_request_interaction(action_id, message)
     
     
-@slack_app.action({"block_id": "consent"})
+@slack_app.action({"block_id": BlockId.CONSENT})
 def handle_consent_action(ack, action):
     ack()
     
@@ -23,7 +24,7 @@ def handle_consent_action(ack, action):
     orchestrator.handle_consent_interaction(action_id, message)
         
         
-@slack_app.action({"block_id": "retract"})
+@slack_app.action({"block_id": BlockId.RETRACT})
 def handle_retract_action(ack, action):
     ack()
     

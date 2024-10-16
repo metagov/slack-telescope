@@ -1,6 +1,7 @@
 import json, os
 from rid_lib.core import RID
 from .config import PERSISTENT_DIR
+from .constants import UserStatus, MessageStatus
 from .utils import encode_b64
 
 
@@ -52,13 +53,6 @@ def persistent_prop(attribute, rid=False):
     return property(getter, setter)
 
 
-class UserStatus:
-    UNSET = None
-    PENDING = "pending"
-    OPT_IN = "opt_in"
-    OPT_IN_ANON = "opt_in_anon"
-    OPT_OUT = "opt_out"
-
 class PersistentUser(PersistentObject):
     _instances = {}
     
@@ -79,25 +73,19 @@ class PersistentUser(PersistentObject):
         elem = self._data["msg_queue"].pop(0)
         self._write()
         return RID.from_string(elem)
-        
-
-class MessageStatus:
-    UNSET = None
-    TAGGED = "tagged"
-    REQUESTED = "requested"
-    IGNORED = "ignored"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
-    RETRACTED = "retracted"
+    
 
 class PersistentMessage(PersistentObject):
     _instances = {}
     
     status = persistent_prop("status")
     anonymous = persistent_prop("anonymous")
-    interaction = persistent_prop("interaction", rid=True)
     author = persistent_prop("author", rid=True)
     tagger = persistent_prop("tagger", rid=True)
+    
+    request_interaction = persistent_prop("request_interaction", rid=True)
+    consent_interaction = persistent_prop("consent_interaction", rid=True)
+    retract_interaction = persistent_prop("retract_interaction", rid=True)
     
     def __init__(self, rid: RID):
         super().__init__(rid, {

@@ -65,7 +65,7 @@ class CacheInterface:
         )
 
         with open(self.file_path(rid), "w") as f:
-            json.dump(cache_entry.to_dict(), f, sort_keys=True, indent=2)
+            json.dump(cache_entry.to_dict(), f, indent=2)
 
         return cache_entry
 
@@ -76,7 +76,7 @@ class CacheInterface:
                 return CacheObject.from_dict(json.load(f))
         except FileNotFoundError:
             return None
-        
+                
     def delete(self, rid: RID):
         """Deletes RID cache entry and associated files."""
         try:
@@ -90,3 +90,37 @@ class CacheInterface:
             shutil.rmtree(CACHE_DIR)
         except FileNotFoundError:
             return
+
+
+class TransformationCacheInterface:
+    def __init__(self):
+        self.file_path = "trans_cache.json"
+         
+    def _read(self):
+        try:
+            with open(self.file_path, "r") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {}
+        
+    def _write(self, data: dict):
+        with open(self.file_path, "w") as f:
+            json.dump(data, f, indent=2)
+    
+    def write(self, rid: RID, other: RID):
+        data = self._read()
+        entry = data.get(str(rid))
+        if not entry: entry = {}
+        
+        entry[other.context] = str(other)
+        data[str(rid)] = entry
+        self._write(data)
+        
+    def read(self, rid: RID, context: str):
+        data = self._read()
+        entry = data.get(str(rid))
+        
+        if not entry:
+            return None
+        
+        return entry.get(context)

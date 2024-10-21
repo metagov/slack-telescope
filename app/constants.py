@@ -11,6 +11,7 @@ class MessageStatus:
     REQUESTED = "requested"
     IGNORED = "ignored"
     ACCEPTED = "accepted"
+    ACCEPTED_ANON = "accepted_anon"
     REJECTED = "rejected"
     RETRACTED = "retracted"
     

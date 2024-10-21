@@ -1,7 +1,7 @@
 from slack_bolt import App
 
 from .config import *
-from .cache import CacheInterface
+from .cache import CacheInterface, TransformationCacheInterface
 from .graph import GraphInterface
 
 slack_app = App(
@@ -11,6 +11,7 @@ slack_app = App(
 )
 
 cache = CacheInterface(CACHE_DIR)
+trans_cache = TransformationCacheInterface()
 graph = GraphInterface(NEO4J_URI, NEO4J_AUTH, NEO4J_DB)
 
 workspace_id = slack_app.client.team_info().data["team"]["id"]

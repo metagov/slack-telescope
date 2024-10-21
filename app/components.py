@@ -1,5 +1,5 @@
 import re
-from rid_lib.types import HTTP, SlackUser
+from rid_lib.types import HTTPS, SlackUser
 from .dereference import deref, transform
 from .persistent import PersistentMessage
 from .config import TEXT_PREVIEW_CHAR_LIMIT
@@ -41,7 +41,7 @@ def format_text(string: str):
 # build slack blocks
 def build_msg_context_row(message, tagger):
     tagger_name = deref(tagger)["real_name"]
-    permalink = str(transform(message, HTTP))
+    permalink = str(transform(message, HTTPS))
     return {
         "type": "context",
         "elements": [{

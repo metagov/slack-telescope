@@ -2,7 +2,7 @@ import time
 from slack_sdk.errors import SlackApiError
 from rid_lib.types import SlackWorkspace, SlackChannel, SlackUser, SlackMessage
 
-from app.core import slack_app
+from app.core import slack_app, cache
 from app import orchestrator
 
 
@@ -151,6 +151,7 @@ def observe_message(message, workspace_id, channel_id):
     message_rid = SlackMessage(workspace_id, channel_id, message_id)        
     author_rid = SlackUser(workspace_id, user_id)
     
+    cache.write(message_rid, message)
     orchestrator.create_request_interaction(message_rid, author_rid, tagger_rid)
 
     return message_rid

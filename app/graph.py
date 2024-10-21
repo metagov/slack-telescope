@@ -32,6 +32,21 @@ class GraphInterface:
             with self.driver.session(database=self.db) as session:
                 return session.execute_write(func, *args, **kwargs)
         return wrapper
+    
+    def read_all(self):
+        @self.execute_read
+        def execute_read_all(tx: ManagedTransaction):
+            READ_ALL = """//cypher
+                MATCH (object:message) RETURN collect(object.rid) AS objects
+                """
+            
+            record = tx.run(READ_ALL).single()
+            if record:
+                return [
+                    RID.from_string(obj) for obj in record["objects"]
+                ]
+        
+        return execute_read_all()
                 
     def create(self, rid: RID):
         """Creates a new RID graph object."""

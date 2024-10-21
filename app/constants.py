@@ -15,13 +15,14 @@ class MessageStatus:
     REJECTED = "rejected"
     RETRACTED = "retracted"
     
-status_emojis = {
-    MessageStatus.TAGGED: ":label:",
-    MessageStatus.REQUESTED: ":hourglass_flowing_sand:",
-    MessageStatus.IGNORED: ":wave:",
-    MessageStatus.ACCEPTED: ":white_check_mark:",
-    MessageStatus.REJECTED: ":x:",
-    MessageStatus.RETRACTED: ":no_entry_sign:"
+status_display = {
+    MessageStatus.TAGGED: "Tagged :label:",
+    MessageStatus.REQUESTED: "Requested :hourglass_flowing_sand:",
+    MessageStatus.IGNORED: "Ignored :wave:",
+    MessageStatus.ACCEPTED: "Accepted :white_check_mark:",
+    MessageStatus.ACCEPTED_ANON: "Accepted :white_check_mark: (anonymously)",
+    MessageStatus.REJECTED: "Rejected :x:",
+    MessageStatus.RETRACTED: "Retracted :no_entry_sign:"
 }
     
 class ActionId:

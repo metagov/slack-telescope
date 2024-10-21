@@ -60,12 +60,13 @@ def handle_consent_interaction(action_id, message):
         if action_id == ActionId.OPT_OUT:
             p_prev_message.status = MessageStatus.REJECTED
         
-        else: 
+        elif action_id == ActionId.OPT_IN:
             p_prev_message.status = MessageStatus.ACCEPTED
-            
-            if action_id == ActionId.OPT_IN_ANON:
-                p_prev_message.anonymous = True
-            
             create_retract_interaction(prev_message)
+        
+        elif action_id == ActionId.OPT_IN_ANON:
+            p_prev_message.status = MessageStatus.ACCEPTED_ANON
+            create_retract_interaction(prev_message)
+            
         refresh_request_interaction(prev_message)
     

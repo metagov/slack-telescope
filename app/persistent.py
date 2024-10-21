@@ -80,7 +80,6 @@ class PersistentMessage(PersistentObject):
     _instances = {}
     
     status = persistent_prop("status")
-    anonymous = persistent_prop("anonymous")
     author = persistent_prop("author", rid=True)
     tagger = persistent_prop("tagger", rid=True)
     
@@ -90,8 +89,7 @@ class PersistentMessage(PersistentObject):
     
     def __init__(self, rid: RID):
         super().__init__(rid, {
-            "status": MessageStatus.UNSET,
-            "anonymous": False
+            "status": MessageStatus.UNSET
         })
         
     

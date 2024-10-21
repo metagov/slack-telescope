@@ -60,16 +60,13 @@ def handle_request_interaction(action_id, message):
         p_user.enqueue(message)
         p_message.status = MessageStatus.REQUESTED
         
-    elif p_user.status in (UserStatus.OPT_IN, UserStatus.OPT_IN_ANON): 
-        if p_user.msg_queue:
-            print("Message queue should be empty:", p_user.msg_queue)
-            
+    elif p_user.status == UserStatus.OPT_IN:
         p_message.status = MessageStatus.ACCEPTED
-        
-        if p_user.status == UserStatus.OPT_IN_ANON:
-            p_message.anonymous = True
-        
         create_retract_interaction(message)
+    
+    elif p_user.status == UserStatus.OPT_IN_ANON:
+        p_message.status = MessageStatus.ACCEPTED_ANON
+        create_retract_interaction(message) 
         
     elif p_user.status == UserStatus.OPT_OUT:
         p_message.status = MessageStatus.REJECTED

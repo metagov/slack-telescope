@@ -1,13 +1,17 @@
+import os
 from .core import slack_app
+from .export import export_to_csv
 
 
-@slack_app.command("/export")
+@slack_app.command("/export_csv")
 def handle_export_command(ack, command):
     ack()
+    
+    filename = export_to_csv()
         
     slack_app.client.files_upload_v2(
-        file="requirements.txt",
-        filename="requirements.txt",
+        file=filename,
+        filename="export.csv",
         channel=command["channel_id"],
         initial_comment="Exported data."
     )

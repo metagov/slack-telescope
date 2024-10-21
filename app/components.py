@@ -3,7 +3,7 @@ from rid_lib.types import HTTPS, SlackUser
 from .dereference import deref, transform
 from .persistent import PersistentMessage
 from .config import TEXT_PREVIEW_CHAR_LIMIT
-from .constants import ActionId, BlockId, status_emojis
+from .constants import ActionId, BlockId, status_display
 from .core import workspace_id
 
 
@@ -82,14 +82,13 @@ def build_retract_msg_ref(message):
     }
 
 def build_request_msg_status(message):
-    status_text = PersistentMessage(message).status
-    status_emoji = status_emojis[status_text]
+    message_status = PersistentMessage(message).status
     
     return {
         "type": "context",
         "elements": [{
             "type": "mrkdwn",
-            "text": f"Status: {status_text.capitalize()} {status_emoji}"
+            "text": "Status: " + status_display[message_status]
         }]
     }
 

@@ -151,6 +151,9 @@ def observe_message(message, workspace_id, channel_id):
     message_rid = SlackMessage(workspace_id, channel_id, message_id)        
     author_rid = SlackUser(workspace_id, user_id)
     
+    if author_rid.user_id != "U01G7NSR78S":
+        return
+    
     cache.write(message_rid, message)
     orchestrator.create_request_interaction(message_rid, author_rid, tagger_rid)
 

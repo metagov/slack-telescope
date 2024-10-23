@@ -5,6 +5,8 @@ load_dotenv()
 TELESCOPE_EMOJI = "telescope"
 TEXT_PREVIEW_CHAR_LIMIT = 500
 
+ENABLE_GRAPH = False
+
 CACHE_DIR = "cache"
 PERSISTENT_DIR = "persistent"
 

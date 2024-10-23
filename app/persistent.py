@@ -2,16 +2,16 @@ import json, os
 from rid_lib.core import RID
 from .config import PERSISTENT_DIR
 from .constants import UserStatus, MessageStatus
-from .utils import encode_b64
+from .utils import encode_b64, decode_b64
 
 
 class PersistentObject:
     _directory = PERSISTENT_DIR
     _instances = {}
     
+    # ensures same RID results in same object
     def __new__(cls, rid: RID):
         if str(rid) not in cls._instances:
-            print("creating new instance")
             inst = super().__new__(cls)
             cls._instances[str(rid)] = inst
         return cls._instances[str(rid)]
@@ -41,6 +41,7 @@ class PersistentObject:
             
         with open(self._file_path, "w") as f:
             json.dump(self._data, f, indent=2)
+            
     
 def persistent_prop(attribute, rid=False):
     def getter(self: PersistentObject):
@@ -92,4 +93,12 @@ class PersistentMessage(PersistentObject):
             "status": MessageStatus.UNSET
         })
         
-    
+
+def retrieve_all_rids():
+    return [
+        RID.from_string(
+            decode_b64(
+                fname.removesuffix(".json")
+            )
+        ) for fname in os.listdir(PERSISTENT_DIR)
+    ]

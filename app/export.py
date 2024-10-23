@@ -1,14 +1,14 @@
 import csv, os, time
 from datetime import datetime, timezone
-from rid_lib.types import HTTPS
-from .core import graph
+from rid_lib.types import HTTPS, SlackMessage, SlackChannel
 from .dereference import deref, transform
-from .persistent import PersistentMessage
+from .persistent import PersistentMessage, retrieve_all_rids
 from .constants import MessageStatus
 
 
 def export_to_csv():
-    messages = graph.read_all()
+    rids = retrieve_all_rids()
+    message_rids = [rid for rid in rids if type(rid) == SlackMessage ]
 
     if not os.path.exists("export"):
         os.makedirs("export")
@@ -21,21 +21,34 @@ def export_to_csv():
 
     writer.writerow([
         "message_rid",
+        "text",
+        "channel_name",
         "message_url",
         "author_rid",
         "author_name",
         "anonymous",
+        "in_thread",
+        "thread_rid",
         "created_at",
         "tagger_rid",
-        "tagger_name"
+        "tagger_name",
     ])
 
-    for msg in messages:
+    for msg in message_rids:
         p_msg = PersistentMessage(msg)
         
+        if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
+            continue
+        
+        message_data = deref(msg)
+        channel = SlackChannel(msg.workspace_id, msg.channel_id)
+        channel_data = deref(channel)
         author_data = deref(p_msg.author)
         tagger_data = deref(p_msg.tagger)
         msg_url = transform(msg, HTTPS)
+        
+        in_thread = msg.message_id != message_data.get("thread_ts", msg.message_id)
+        
         created_at = datetime.fromtimestamp(
             float(msg.message_id), timezone.utc
             ).strftime("%Y-%m-%d %H:%M:%S")
@@ -52,13 +65,20 @@ def export_to_csv():
         
         writer.writerow([
             str(msg),
+            message_data.get("text"),
+            channel_data.get("name"),
             str(msg_url),
             author_rid,
             author_name,
             anonymous,
+            in_thread,
+            message_data.get("thread_ts"),
             created_at,
             str(p_msg.tagger),
             tagger_data.get("real_name")
         ])
         
     return filename
+
+if __name__ == "__main__":
+    export_to_csv()

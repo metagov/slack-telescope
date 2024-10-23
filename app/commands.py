@@ -4,8 +4,13 @@ from .export import export_to_csv
 
 
 @slack_app.command("/export_csv")
-def handle_export_command(ack, command):
+def handle_export_command(ack, command, say):
     ack()
+    
+    slack_app.client.chat_postMessage(
+        channel=command["channel_id"],
+        text="Beginning export... (this might take a few moments!)"
+    )
     
     filename = export_to_csv()
         

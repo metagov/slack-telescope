@@ -1,23 +1,26 @@
 from rid_lib.core import RID
-from rid_lib.types import SlackMessage, SlackUser, HTTP, HTTPS
+from rid_lib.types import SlackMessage, SlackUser, SlackChannel, HTTPS
 
 from .core import slack_app, cache, trans_cache
 
-def dereference_slack_user(user: SlackUser):
-    resp = slack_app.client.users_profile_get(user=user.user_id)
-    return resp["profile"]
-
-def dereference_slack_message(msg: SlackMessage):
-    resp = slack_app.client.conversations_replies(
-        channel=msg.channel_id,
-        ts=msg.message_id,
-        limit=1
-    )
-    return resp["messages"][0]
 
 dereference_table = {
-    SlackUser: dereference_slack_user,
-    SlackMessage: dereference_slack_message
+    SlackUser:  
+        lambda rid: slack_app.client.users_profile_get(
+            user=rid.user_id
+        )["profile"],
+
+    SlackMessage:  
+        lambda rid: slack_app.client.conversations_replies(
+            channel=rid.channel_id, 
+            ts=rid.message_id,
+            limit=1
+        )["messages"][0],
+        
+    SlackChannel: 
+        lambda rid: slack_app.client.conversations_info(
+            channel=rid.channel_id
+        )["channel"]
 }
 
 def deref(rid: RID):

@@ -4,6 +4,7 @@ from rid_lib.types import HTTPS, SlackMessage, SlackChannel
 from .dereference import deref, transform
 from .persistent import PersistentMessage, retrieve_all_rids
 from .constants import MessageStatus
+from .utils import retraction_time_elapsed
 
 
 def export_to_csv():
@@ -32,6 +33,7 @@ def export_to_csv():
         "created_at",
         "tagger_rid",
         "tagger_name",
+        "retraction_time_elapsed"
     ])
 
     for msg in message_rids:
@@ -75,7 +77,8 @@ def export_to_csv():
             message_data.get("thread_ts"),
             created_at,
             str(p_msg.tagger),
-            tagger_data.get("real_name")
+            tagger_data.get("real_name"),
+            retraction_time_elapsed(p_msg)
         ])
         
     return filename

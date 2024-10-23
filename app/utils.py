@@ -1,6 +1,8 @@
-import hashlib, json, re
+import hashlib, json
+from datetime import datetime, timezone
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from rid_lib.core import RID
+from .config import RETRACTION_TIME_LIMIT
 
 def encode_b64(string: str):
     return urlsafe_b64encode(
@@ -24,3 +26,13 @@ def rid_params(rid: RID):
         "obj_type": rid.obj_type,
         "context": rid.context
     }
+    
+def retraction_time_elapsed(p_message):
+    initial_date = datetime.fromtimestamp(
+        float(p_message.retract_interaction.message_id),
+        timezone.utc
+    )
+    
+    elapsed_time = datetime.now(timezone.utc) - initial_date
+    
+    return elapsed_time > RETRACTION_TIME_LIMIT

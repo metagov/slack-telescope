@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta, timezone
 from rid_lib.types import SlackMessage
 from app.core import slack_app, graph
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
 from app.components import *
-from app.config import ENABLE_GRAPH, RETRACTION_TIME_LIMIT
+from app.utils import retraction_time_elapsed
+from app.config import ENABLE_GRAPH
 from .helpers import refresh_request_interaction
 
 
@@ -37,13 +37,7 @@ def create_retract_interaction(message):
 def handle_retract_interaction(action_id, message):
     p_message = PersistentMessage(message)
     
-    initial_date = datetime.fromtimestamp(
-        float(p_message.retract_interaction.message_id),
-        timezone.utc)
-    
-    elapsed_time = datetime.now(timezone.utc) - initial_date
-    
-    if elapsed_time < RETRACTION_TIME_LIMIT:
+    if not retraction_time_elapsed(p_message):
         p_message.status = MessageStatus.RETRACTED
     
         if ENABLE_GRAPH:

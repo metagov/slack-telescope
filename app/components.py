@@ -91,6 +91,15 @@ def build_request_msg_status(message):
             "text": "Status: " + status_display[message_status]
         }]
     }
+    
+def build_retract_msg_status(message):    
+    return {
+        "type": "context",
+        "elements": [{
+            "type": "mrkdwn",
+            "text": message
+        }]
+    }
 
 def build_request_interaction_row(rid):
     payload = str(rid)

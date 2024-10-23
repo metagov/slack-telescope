@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta, timezone
 from rid_lib.types import SlackMessage
 from app.core import slack_app, graph
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
 from app.components import *
-from app.config import ENABLE_GRAPH
+from app.config import ENABLE_GRAPH, RETRACTION_TIME_LIMIT
 from .helpers import refresh_request_interaction
 
 
@@ -35,14 +36,39 @@ def create_retract_interaction(message):
     
 def handle_retract_interaction(action_id, message):
     p_message = PersistentMessage(message)
-    p_message.status = MessageStatus.RETRACTED
     
-    if ENABLE_GRAPH:
-        graph.delete(message)
+    initial_date = datetime.fromtimestamp(
+        float(p_message.retract_interaction.message_id),
+        timezone.utc)
+    
+    elapsed_time = datetime.now(timezone.utc) - initial_date
+    
+    if elapsed_time < RETRACTION_TIME_LIMIT:
+        p_message.status = MessageStatus.RETRACTED
+    
+        if ENABLE_GRAPH:
+            graph.delete(message)
+            
+        slack_app.client.chat_update(
+            channel=p_message.retract_interaction.channel_id,
+            ts=p_message.retract_interaction.message_id,
+            blocks=[
+                build_retract_msg_ref(message),
+                build_msg_context_row(message, p_message.tagger),
+                build_retract_msg_status("Your message has been retracted successfully")
+            ]
+        )
         
-    slack_app.client.chat_delete(
-        channel=p_message.retract_interaction.channel_id,
-        ts=p_message.retract_interaction.message_id
-    )
+        refresh_request_interaction(message)
+            
+    else:
+        slack_app.client.chat_update(
+            channel=p_message.retract_interaction.channel_id,
+            ts=p_message.retract_interaction.message_id,
+            blocks=[
+                build_retract_msg_ref(message),
+                build_msg_context_row(message, p_message.tagger),
+                build_retract_msg_status("The retraction period has passed, please contact researchers directly if you still wish to retract your message")
+            ]
+        )
     
-    refresh_request_interaction(message)

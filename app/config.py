@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+from datetime import timedelta
 load_dotenv()
 
 TELESCOPE_EMOJI = "telescope"
@@ -15,6 +16,7 @@ NEO4J_AUTH = ("neo4j", "telescope")
 NEO4J_DB = "neo4j"
 
 OBSERVATORY_CHANNEL_ID = "C077AFMMFGX"
+RETRACTION_TIME_LIMIT = timedelta(weeks=2)
 
 SLACK_BOT_USER_ID = "U07LXBE9JFL"
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]

@@ -5,7 +5,8 @@ from app.constants import MessageStatus
 from app.components import *
 from app.utils import retraction_time_elapsed
 from app.config import ENABLE_GRAPH
-from .helpers import refresh_request_interaction
+from .refresh import refresh_request_interaction
+from .broadcast import delete_broadcast
 
 
 def create_retract_interaction(message):
@@ -52,7 +53,8 @@ def handle_retract_interaction(action_id, message):
                 build_retract_msg_status("Your message has been retracted successfully")
             ]
         )
-        
+    
+        delete_broadcast(message)    
         refresh_request_interaction(message)
             
     else:

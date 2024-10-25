@@ -6,8 +6,9 @@ from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.components import *
 from .consent import create_consent_interaction
+from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
-from .helpers import refresh_request_interaction
+from .broadcast import create_broadcast
 
 
 def create_request_interaction(message, author, tagger):
@@ -45,10 +46,6 @@ def handle_request_interaction(action_id, message):
     p_user = PersistentUser(p_message.author)  
     
     if action_id == ActionId.IGNORE:
-        # slack_app.client.chat_delete(
-        #     channel=p_message.request_interaction.channel_id,
-        #     ts=p_message.request_interaction.message_id
-        # )
         p_message.status = MessageStatus.IGNORED
         refresh_request_interaction(message)
         return
@@ -63,10 +60,12 @@ def handle_request_interaction(action_id, message):
     elif p_user.status == UserStatus.OPT_IN:
         p_message.status = MessageStatus.ACCEPTED
         create_retract_interaction(message)
+        create_broadcast(message)
     
     elif p_user.status == UserStatus.OPT_IN_ANON:
         p_message.status = MessageStatus.ACCEPTED_ANON
-        create_retract_interaction(message) 
+        create_retract_interaction(message)
+        create_broadcast(message)
         
     elif p_user.status == UserStatus.OPT_OUT:
         p_message.status = MessageStatus.REJECTED

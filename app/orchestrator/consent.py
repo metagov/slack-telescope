@@ -3,8 +3,9 @@ from app.core import slack_app
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.components import *
-from .helpers import refresh_request_interaction
+from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
+from .broadcast import create_broadcast
 
 
 def create_consent_interaction(message):
@@ -63,10 +64,12 @@ def handle_consent_interaction(action_id, message):
         elif action_id == ActionId.OPT_IN:
             p_prev_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(prev_message)
+            create_broadcast(prev_message)
         
         elif action_id == ActionId.OPT_IN_ANON:
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(prev_message)
+            create_broadcast(prev_message)
             
         refresh_request_interaction(prev_message)
     

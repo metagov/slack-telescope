@@ -87,6 +87,7 @@ class PersistentMessage(PersistentObject):
     request_interaction = persistent_prop("request_interaction", rid=True)
     consent_interaction = persistent_prop("consent_interaction", rid=True)
     retract_interaction = persistent_prop("retract_interaction", rid=True)
+    broadcast_interaction = persistent_prop("broadcast_interaction", rid=True)
     
     def __init__(self, rid: RID):
         super().__init__(rid, {

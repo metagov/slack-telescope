@@ -44,32 +44,58 @@ def create_request_interaction(message, author, tagger):
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)  
-    
-    if action_id == ActionId.IGNORE:
-        p_message.status = MessageStatus.IGNORED
+        
+    if action_id == ActionId.REQUEST:
+        if p_user.status == UserStatus.UNSET:
+            create_consent_interaction(message)
+            
+        if p_user.status == UserStatus.PENDING:
+            p_user.enqueue(message)
+            p_message.status = MessageStatus.REQUESTED
+            
+        elif p_user.status == UserStatus.OPT_IN:
+            p_message.status = MessageStatus.ACCEPTED
+            create_retract_interaction(message)
+            create_broadcast(message)
+        
+        elif p_user.status == UserStatus.OPT_IN_ANON:
+            p_message.status = MessageStatus.ACCEPTED_ANON
+            create_retract_interaction(message)
+            create_broadcast(message)
+            
+        elif p_user.status == UserStatus.OPT_OUT:
+            p_message.status = MessageStatus.REJECTED
+        
         refresh_request_interaction(message)
-        return
-        
-    if p_user.status == UserStatus.UNSET:
-        create_consent_interaction(message)
-        
-    if p_user.status == UserStatus.PENDING:
-        p_user.enqueue(message)
-        p_message.status = MessageStatus.REQUESTED
-        
-    elif p_user.status == UserStatus.OPT_IN:
-        p_message.status = MessageStatus.ACCEPTED
-        create_retract_interaction(message)
-        create_broadcast(message)
     
-    elif p_user.status == UserStatus.OPT_IN_ANON:
-        p_message.status = MessageStatus.ACCEPTED_ANON
-        create_retract_interaction(message)
-        create_broadcast(message)
+    elif action_id == ActionId.IGNORE:
+        p_message.status = MessageStatus.IGNORED
         
-    elif p_user.status == UserStatus.OPT_OUT:
-        p_message.status = MessageStatus.REJECTED
+        slack_app.client.chat_update(
+            channel=p_message.request_interaction.channel_id,
+            ts=p_message.request_interaction.message_id,
+            blocks=[
+                build_request_msg_ref(message, p_message.author),
+                build_msg_context_row(message, p_message.tagger),
+                build_request_msg_status(message),
+                build_alt_request_interaction_row(message)
+            ]
+        )
         
-    refresh_request_interaction(message)
     
-
+def handle_alt_request_interaction(action_id, message):
+    p_message = PersistentMessage(message)
+    
+    if action_id == ActionId.UNDO_IGNORE:
+        p_message.status = MessageStatus.TAGGED
+        
+        slack_app.client.chat_update(
+            channel=p_message.request_interaction.channel_id,
+            ts=p_message.request_interaction.message_id,
+            blocks=[
+                build_request_msg_ref(message, p_message.author),
+                build_msg_context_row(message, p_message.tagger),
+                build_request_msg_status(message),
+                build_request_interaction_row(message)
+            ]
+        )

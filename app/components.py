@@ -128,6 +128,24 @@ def build_request_interaction_row(rid):
             }
         ]
     }
+    
+def build_alt_request_interaction_row(rid):
+    payload = str(rid)
+    return {
+        "type": "actions",
+        "block_id": BlockId.ALT_REQUEST,
+        "elements": [
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Undo Ignore"
+                },
+                "action_id": ActionId.UNDO_IGNORE,
+                "value" : payload
+            }
+        ]
+    }
 
 def build_consent_interaction_row(rid):
     payload = str(rid)

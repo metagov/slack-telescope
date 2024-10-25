@@ -28,6 +28,7 @@ status_display = {
 class ActionId:
     REQUEST = "request"
     IGNORE = "ignore"
+    UNDO_IGNORE = "undo_ignore"
     OPT_IN = "opt_in"
     OPT_IN_ANON = "opt_in_anon"
     OPT_OUT = "opt_out"
@@ -35,5 +36,6 @@ class ActionId:
     
 class BlockId:
     REQUEST = "request"
+    ALT_REQUEST = "alt_request"
     CONSENT = "consent"
     RETRACT = "retract"

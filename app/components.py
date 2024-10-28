@@ -5,6 +5,7 @@ from .persistent import PersistentMessage
 from .config import TEXT_PREVIEW_CHAR_LIMIT
 from .constants import ActionId, BlockId, status_display
 from .core import workspace_id
+import messages
 
 
 # formatting helper functions
@@ -67,7 +68,7 @@ def build_consent_msg_ref(message):
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": f"Your message has been tagged for observation!\n{formatted_text}"
+            "text": f"{messages.consent_ui_msg_header}\n{formatted_text}"
         }
     }
 
@@ -77,7 +78,7 @@ def build_retract_msg_ref(message):
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": f"Your message has been observed by Telescope!\n{formatted_text}"
+            "text": f"{messages.retract_ui_msg_header}\n{formatted_text}"
         }
     }
 

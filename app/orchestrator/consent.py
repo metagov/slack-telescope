@@ -6,6 +6,7 @@ from app.components import *
 from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
+import messages
 
 
 def create_consent_interaction(message):
@@ -24,7 +25,7 @@ def create_consent_interaction(message):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Welcome to the Observatory! You are receiving this notice because one of your messages has been tagged for observation. Your decision to opt in or out will apply to this message and all future messages observed by Telescope. If you chose to opt in, you will be informed when new messages are observed and have the option to retract them."
+                    "text": messages.consent_ui_welcome
                 }
             }
         ]

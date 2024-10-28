@@ -8,6 +8,7 @@ def create_broadcast(message):
     p_message = PersistentMessage(message)
     
     resp = slack_app.client.chat_postMessage(
+        text="New message observed",
         channel=BROADCAST_CHANNEL_ID,
         unfurl_links=False,
         blocks=[

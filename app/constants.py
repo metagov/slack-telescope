@@ -8,6 +8,7 @@ class UserStatus:
 class MessageStatus:
     UNSET = None
     TAGGED = "tagged"
+    UNREACHABLE = "unreachable"
     REQUESTED = "requested"
     IGNORED = "ignored"
     ACCEPTED = "accepted"

@@ -13,7 +13,10 @@ def create_consent_interaction(message):
     p_user = PersistentUser(p_message.author)
     p_user.status = UserStatus.PENDING
     
+    print(f"Sent consent interaction to user <{p_message.author}>")
+    
     slack_app.client.chat_postMessage(
+        text="Welcome to the Observatory!",
         channel=p_user.rid.user_id,
         unfurl_links=False,
         blocks=[
@@ -28,6 +31,7 @@ def create_consent_interaction(message):
     )
     
     resp = slack_app.client.chat_postMessage(
+        text="Requesting to observe your message",
         channel=p_user.rid.user_id,
         unfurl_links=False,
         blocks=[
@@ -54,19 +58,25 @@ def handle_consent_interaction(action_id, message):
         ts=p_message.consent_interaction.message_id
     )
     
+    print(f"User <{p_message.author}> has set consent status to {action_id}")
+    print(f"Handling message queue of size {len(persistent_user.msg_queue)}")
+    
     while persistent_user.msg_queue:
         prev_message = persistent_user.dequeue()
         p_prev_message = PersistentMessage(prev_message)
-        
+                
         if action_id == ActionId.OPT_OUT:
+            print(f"Message <{prev_message}> rejected")
             p_prev_message.status = MessageStatus.REJECTED
         
         elif action_id == ActionId.OPT_IN:
+            print(f"Message <{prev_message}> accepted")
             p_prev_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(prev_message)
             create_broadcast(prev_message)
         
         elif action_id == ActionId.OPT_IN_ANON:
+            print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(prev_message)
             create_broadcast(prev_message)

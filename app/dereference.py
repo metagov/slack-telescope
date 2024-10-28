@@ -1,3 +1,4 @@
+from slack_sdk.errors import SlackApiError
 from rid_lib.core import RID
 from rid_lib.types import SlackMessage, SlackUser, SlackChannel, HTTPS
 
@@ -28,14 +29,15 @@ def deref(rid: RID):
     cache_obj = cache.read(rid)
         
     if cache_obj:
-        print(rid, "hit deref cache")
         return cache_obj.data
     
     if dereference_func:
-        print(rid, "dereferenced")
-        data = dereference_func(rid)
-        cache.write(rid, data)
-        return data
+        try:
+            data = dereference_func(rid)
+            cache.write(rid, data)
+            return data
+        except SlackApiError as e:
+            print(e)
     else:
         raise Exception(f"No dereference func defined for '{type(rid)}'")
     
@@ -56,11 +58,9 @@ def transform(rid: RID, to_type):
     transformed = trans_cache.read(rid, to_type.context)
     
     if transformed:
-        print(rid, "->", to_type.context, "hit trans cache")
         return transformed
     elif transformation_func:
         to_rid = transformation_func(rid)
-        print(f"transformed {rid} -> {to_rid}")
         trans_cache.write(rid, to_rid)
         return to_rid
     else:

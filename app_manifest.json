@@ -1,0 +1,46 @@
+{
+    "display_information": {
+        "name": "Telescope"
+    },
+    "features": {
+        "bot_user": {
+            "display_name": "Telescope",
+            "always_online": false
+        },
+        "slash_commands": [
+            {
+                "command": "/export_csv",
+                "description": "Exports Telescope data",
+                "should_escape": false
+            }
+        ]
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "channels:history",
+                "channels:join",
+                "channels:read",
+                "chat:write",
+                "commands",
+                "reactions:read",
+                "team:read",
+                "users.profile:read",
+                "files:write"
+            ]
+        }
+    },
+    "settings": {
+        "event_subscriptions": {
+            "bot_events": [
+                "reaction_added"
+            ]
+        },
+        "interactivity": {
+            "is_enabled": true
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": true,
+        "token_rotation_enabled": false
+    }
+}

@@ -13,6 +13,7 @@ def create_retract_interaction(message):
     p_message = PersistentMessage(message)
     
     resp = slack_app.client.chat_postMessage(
+        text="Your message has been observed",
         channel=p_message.author.user_id,
         unfurl_links=False,
         blocks=[
@@ -39,6 +40,7 @@ def handle_retract_interaction(action_id, message):
     p_message = PersistentMessage(message)
     
     if not retraction_time_elapsed(p_message):
+        print(f"Message <{message}> retracted")
         p_message.status = MessageStatus.RETRACTED
     
         if ENABLE_GRAPH:
@@ -58,6 +60,7 @@ def handle_retract_interaction(action_id, message):
         refresh_request_interaction(message)
             
     else:
+        print(f"Message <{message}> could not be retracted")
         slack_app.client.chat_update(
             channel=p_message.retract_interaction.channel_id,
             ts=p_message.retract_interaction.message_id,

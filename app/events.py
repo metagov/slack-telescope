@@ -1,8 +1,8 @@
-from rid_lib.types import SlackMessage, SlackUser, SlackChannel
+from rid_lib.types import SlackMessage, SlackUser
 from .core import slack_app
-from .config import TELESCOPE_EMOJI, SLACK_BOT_USER_ID
-from .dereference import deref
+from .config import TELESCOPE_EMOJI, SLACK_BOT_USER_ID, OBSERVATORY_CHANNEL_ID
 from . import orchestrator
+from .dereference import deref
 
 
 @slack_app.event("reaction_added")
@@ -24,12 +24,30 @@ def handle_reaction_added(body, event):
     )
     tagger = SlackUser(team_id, event["user"])
     author = SlackUser(team_id, event["item_user"])
-    channel = SlackChannel(tagged_msg.workspace_id, tagged_msg.channel_id)
-    
-    print(f"New message <{tagged_msg}> tagged in #{deref(channel)['name']} "
-        f"(author: {deref(author)['real_name']}, "
-        f"tagger: {deref(tagger)['real_name']})"
-    )
         
     orchestrator.create_request_interaction(tagged_msg, author, tagger)
     
+
+@slack_app.event({
+    "type": "message",
+    "channel": OBSERVATORY_CHANNEL_ID
+})
+def handle_message_reply(event):
+    # only handle replies to bot message
+    if event.get("parent_user_id") != SLACK_BOT_USER_ID:
+        return
+    
+    request_msg = SlackMessage(
+        event["team"],
+        event["channel"],
+        event["thread_ts"]
+    )
+    
+    
+    slack_app.client.reactions_add(
+        channel=event["channel"],
+        timestamp=event["ts"],
+        name="thumbsup"
+    )
+    
+    breakpoint()

@@ -1,4 +1,4 @@
-from rid_lib.types import SlackMessage
+from rid_lib.types import SlackMessage, SlackChannel
 
 from app.core import slack_app
 from app.config import OBSERVATORY_CHANNEL_ID
@@ -22,12 +22,19 @@ def create_request_interaction(message, author, tagger):
     p_message.author = author
     p_message.tagger = tagger
     
+    channel = SlackChannel(message.workspace_id, message.channel_id)
+    channel_data = deref(channel)
+    print(f"New message <{message}> tagged in #{channel_data['name']} "
+        f"(author: {deref(author)['real_name']}, "
+        f"tagger: {deref(tagger)['real_name']})"
+    )
+    
     msg_url = transform(message, HTTPS)
-    if deref(message) is None:
+    if channel_data["is_private"] == True:
         p_message.status = MessageStatus.UNREACHABLE
         slack_app.client.chat_postMessage(
             channel=OBSERVATORY_CHANNEL_ID,
-            text=f"The <{msg_url}|message you just tagged> is located in a private channel and cannot be observed by Telescope.")
+            text=f"The <{msg_url}|message you just tagged> is located in a private channel and cannot be observed.")
         print("Message was unreachable")
         return
         

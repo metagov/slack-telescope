@@ -2,32 +2,81 @@ from .constants import ActionId, BlockId, status_display
 from .blocks import *
 import messages
 
-def build_request_msg_ref(message_url, tagger_name):    
+import re
+from .persistent import PersistentMessage
+from .config import TEXT_PREVIEW_CHAR_LIMIT
+from .dereference import deref
+from rid_lib.types import SlackUser
+from .core import workspace_id
+
+
+def replace_match(match):
+    try:
+        user_data = deref(SlackUser(workspace_id, match.group(1)))
+        if not user_data or type(user_data) != dict:
+            return match.group(0)
+        else:
+            return "@" + user_data.get("real_name")
+    except Exception:
+        return match.group(0)
+
+def format_text(message):
+    text = deref(message)["text"]
+    
+    if len(text) > TEXT_PREVIEW_CHAR_LIMIT:
+        text = text[:TEXT_PREVIEW_CHAR_LIMIT] + "..."
+    
+    filtered_str = re.sub(r"<@(\w+)>", replace_match, text)
+    indented_str = "\n".join([
+        "&gt;" + line if line.startswith(("> ", "&gt; ")) else "&gt; " + line
+        for line in filtered_str.splitlines()  
+    ])
+    
+    return indented_str
+
+def build_msg_context_row(message):
+    p_message = PersistentMessage(message)
+    author_name = deref(p_message.author)["real_name"]
+    
+    timestamp = message.message_id.split(".")[0]
+        
+    return context_block([
+        text_obj(
+            f"Posted in <#{message.channel_id}> by *{author_name}* | <!date^{timestamp}^{{date_pretty}} at {{time}}|(time unknown))> | <{p_message.permalink}|View message>",
+            type="mrkdwn"
+        )
+    ])
+
+def build_request_msg_ref(message): 
+    tagger_name = deref(PersistentMessage(message).tagger)["real_name"]
+       
     return section_block(
-        text_obj(f"*{tagger_name}* tagged a <{message_url}|message>", type="mrkdwn")
+        text_obj(f"Tagged by *{tagger_name}*\n{format_text(message)}", type="mrkdwn")
     )
     
-def build_consent_msg_ref(message_url):
+def build_consent_msg_ref(message):
     return section_block(
-        text_obj(messages.consent_ui_msg_header.replace("message", f"<{message_url}|message>"), type="mrkdwn")
+        text_obj(messages.consent_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
     )
 
-def build_retract_msg_ref(message_url):
+def build_retract_msg_ref(message):
     return section_block(
-        text_obj(messages.retract_ui_msg_header.replace("message", f"<{message_url}|message>"), type="mrkdwn")
+        text_obj(messages.retract_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
     )
     
-def build_broadcast_msg_ref(message_url):
+def build_broadcast_msg_ref(message):
+    author_name = deref(PersistentMessage(message).author)["real_name"]
+    
     return section_block(
-        text_obj(f"New <{message_url}|message> observed by Telescope", type="mrkdwn")
+        text_obj(f"Observed a message from *{author_name}*\n{format_text(message)}", type="mrkdwn")
     )
 
-def build_request_msg_status(message_status):    
-    return context_block(
-        elements=[
-            text_obj("Status: " + status_display[message_status], type="mrkdwn")
-        ]
-    )
+def build_request_msg_status(message):
+    message_status = PersistentMessage(message).status
+        
+    return context_block([
+        text_obj(f"Status: {status_display[message_status]} (reply here to add comments)", type="mrkdwn")
+    ])
     
 def build_basic_section(text):
     return section_block(
@@ -54,7 +103,7 @@ def build_alt_request_interaction_row(rid):
     return action_block(
         block_id=BlockId.REQUEST,
         elements=[
-            button_block(ActionId.UNDO_IGNORE, text_obj("Undo Ignore"), str(rid))
+            button_block(ActionId.UNDO_IGNORE, text_obj("Undo ignore"), str(rid))
         ]
     )
     

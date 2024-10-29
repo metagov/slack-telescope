@@ -22,11 +22,11 @@ def create_request_interaction(message, author, tagger):
     p_message.status = MessageStatus.TAGGED
     p_message.author = author
     p_message.tagger = tagger
+    p_message.permalink = transform(message, HTTPS)
     
     author_name = deref(author)["real_name"]
     tagger_name = deref(tagger)["real_name"]
     
-    msg_url = transform(message, HTTPS)
     
     channel = SlackChannel(message.workspace_id, message.channel_id)
     channel_data = deref(channel)
@@ -39,22 +39,17 @@ def create_request_interaction(message, author, tagger):
         p_message.status = MessageStatus.UNREACHABLE
         slack_app.client.chat_postMessage(
             channel=OBSERVATORY_CHANNEL_ID,
-            text=f"The <{msg_url}|message you just tagged> is located in a private channel and cannot be observed.")
+            text=f"The <{p_message.permalink}|message you just tagged> is located in a private channel and cannot be observed.")
         print("Message was unreachable")
         return
     
-    slack_app.client.chat_postMessage(
-        channel=OBSERVATORY_CHANNEL_ID,
-        blocks=[
-            build_request_msg_ref(msg_url, tagger_name)
-        ]
-    )
-        
     resp = slack_app.client.chat_postMessage(
-        text="Your message has been observed",
         channel=OBSERVATORY_CHANNEL_ID,
+        unfurl_links=False,
         blocks=[
-            build_request_msg_status(p_message.status),
+            build_request_msg_ref(message),
+            build_msg_context_row(message),
+            build_request_msg_status(message),
             build_request_interaction_row(message)
         ]
     )
@@ -67,8 +62,8 @@ def create_request_interaction(message, author, tagger):
     
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
-    p_user = PersistentUser(p_message.author)  
-        
+    p_user = PersistentUser(p_message.author)
+            
     if action_id == ActionId.REQUEST:
         print(f"Message <{message}> requested")
         
@@ -111,7 +106,9 @@ def handle_request_interaction(action_id, message):
             channel=p_message.request_interaction.channel_id,
             ts=p_message.request_interaction.message_id,
             blocks=[
-                build_request_msg_status(p_message.status),
+                build_request_msg_ref(message),
+                build_msg_context_row(message),
+                build_request_msg_status(message),
                 build_alt_request_interaction_row(message)
             ]
         )
@@ -124,7 +121,9 @@ def handle_request_interaction(action_id, message):
             channel=p_message.request_interaction.channel_id,
             ts=p_message.request_interaction.message_id,
             blocks=[
-                build_request_msg_status(p_message.status),
+                build_request_msg_ref(message),
+                build_msg_context_row(message),
+                build_request_msg_status(message),
                 build_request_interaction_row(message)
             ]
         )

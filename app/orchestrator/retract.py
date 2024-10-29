@@ -1,30 +1,25 @@
-from rid_lib.types import SlackMessage, HTTPS
+from rid_lib.types import SlackMessage
 from app.core import slack_app, graph
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
 from app.components import *
 from app.utils import retraction_time_elapsed
 from app.config import ENABLE_GRAPH
-from app.dereference import transform
 from .refresh import refresh_request_interaction
 from .broadcast import delete_broadcast
 import messages
 
+
 def create_retract_interaction(message):
     p_message = PersistentMessage(message)
-    msg_url = transform(message, HTTPS)
-    
-    slack_app.client.chat_postMessage(
-        channel=p_message.author.user_id,
-        blocks=[
-            build_retract_msg_ref(msg_url),
-        ]
-    )
     
     resp = slack_app.client.chat_postMessage(
         text="Your message has been observed",
+        unfurl_links=False,
         channel=p_message.author.user_id,
         blocks=[
+            build_retract_msg_ref(message),
+            build_msg_context_row(message),
             build_retract_interaction_row(message)
         ]
     )
@@ -44,7 +39,6 @@ def create_retract_interaction(message):
     
 def handle_retract_interaction(action_id, message):
     p_message = PersistentMessage(message)
-    msg_url = transform(message, HTTPS)
     
     if action_id == ActionId.RETRACT:
         if not retraction_time_elapsed(p_message):
@@ -58,6 +52,8 @@ def handle_retract_interaction(action_id, message):
                 channel=p_message.retract_interaction.channel_id,
                 ts=p_message.retract_interaction.message_id,
                 blocks=[
+                    build_retract_msg_ref(message),
+                    build_msg_context_row(message),
                     build_basic_context(messages.retract_success)
                 ]
             )
@@ -71,6 +67,8 @@ def handle_retract_interaction(action_id, message):
                 channel=p_message.retract_interaction.channel_id,
                 ts=p_message.retract_interaction.message_id,
                 blocks=[
+                    build_retract_msg_ref(message),
+                    build_msg_context_row(message),
                     build_basic_context(messages.retract_failure)
                 ]
             )

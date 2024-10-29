@@ -4,6 +4,7 @@ from base64 import urlsafe_b64encode, urlsafe_b64decode
 from rid_lib.core import RID
 from .config import RETRACTION_TIME_LIMIT
 
+
 def encode_b64(string: str):
     return urlsafe_b64encode(
         string.encode()).decode().rstrip("=")
@@ -36,3 +37,4 @@ def retraction_time_elapsed(p_message):
     elapsed_time = datetime.now(timezone.utc) - initial_date
     
     return elapsed_time > RETRACTION_TIME_LIMIT
+

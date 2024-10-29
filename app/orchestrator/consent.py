@@ -1,6 +1,5 @@
-from rid_lib.types import SlackMessage, HTTPS
+from rid_lib.types import SlackMessage
 from app.core import slack_app
-from app.dereference import transform
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.components import *
@@ -14,24 +13,23 @@ def create_consent_interaction(message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
     p_user.status = UserStatus.PENDING
-    
-    msg_url = transform(message, HTTPS)
-    
+        
     print(f"Sent consent interaction to user <{p_message.author}>")
     
     slack_app.client.chat_postMessage(
-        text="Welcome to the Observatory!",
-        channel=p_user.rid.user_id,
+        channel=p_message.author.user_id,
         blocks=[
             build_basic_section(messages.consent_ui_welcome),
-            build_consent_msg_ref(msg_url),
         ]
     )
     
     resp = slack_app.client.chat_postMessage(
         text="Requesting to observe your message",
-        channel=p_user.rid.user_id,
+        channel=p_message.author.user_id,
+        unfurl_links=False,
         blocks=[
+            build_consent_msg_ref(message),
+            build_msg_context_row(message),
             build_consent_interaction_row(message)
         ]
     )

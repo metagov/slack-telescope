@@ -88,11 +88,19 @@ class PersistentMessage(PersistentObject):
     consent_interaction = persistent_prop("consent_interaction", rid=True)
     retract_interaction = persistent_prop("retract_interaction", rid=True)
     broadcast_interaction = persistent_prop("broadcast_interaction", rid=True)
+    permalink = persistent_prop("permalink", rid=True)
+    
+    comments = persistent_prop("comments")
     
     def __init__(self, rid: RID):
         super().__init__(rid, {
-            "status": MessageStatus.UNSET
+            "status": MessageStatus.UNSET,
+            "comments": []
         })
+        
+    def add_comment(self, comment: str):
+        self._data["comments"].append(comment)
+        self._write()
         
 
 def retrieve_all_rids():

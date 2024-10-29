@@ -37,6 +37,5 @@ class ActionId:
     
 class BlockId:
     REQUEST = "request"
-    ALT_REQUEST = "alt_request"
     CONSENT = "consent"
     RETRACT = "retract"

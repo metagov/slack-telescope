@@ -1,3 +1,3 @@
-from .request import create_request_interaction, handle_request_interaction, handle_alt_request_interaction
+from .request import create_request_interaction, handle_request_interaction
 from .consent import create_consent_interaction, handle_consent_interaction
 from .retract import create_retract_interaction, handle_retract_interaction

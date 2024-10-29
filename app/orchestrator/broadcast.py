@@ -1,19 +1,20 @@
-from rid_lib.types import SlackMessage
+from rid_lib.types import SlackMessage, HTTPS
 from app.core import slack_app
 from app.config import BROADCAST_CHANNEL_ID
 from app.persistent import PersistentMessage
 from app.components import *
+from app.dereference import deref, transform
 
 def create_broadcast(message):
     p_message = PersistentMessage(message)
     
+    msg_url = transform(message, HTTPS)
+    
     resp = slack_app.client.chat_postMessage(
         text="New message observed",
         channel=BROADCAST_CHANNEL_ID,
-        unfurl_links=False,
         blocks=[
-            build_request_msg_ref(message, p_message.author),
-            build_msg_context_row(message, p_message.tagger)
+            build_broadcast_msg_ref(msg_url),
         ]
     )
     

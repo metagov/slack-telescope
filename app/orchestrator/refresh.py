@@ -9,9 +9,7 @@ def refresh_request_interaction(message):
         channel=p_message.request_interaction.channel_id,
         ts=p_message.request_interaction.message_id,
         blocks=[
-            build_request_msg_ref(message, p_message.author),
-            build_msg_context_row(message, p_message.tagger),
-            build_request_msg_status(message),
+            build_request_msg_status(p_message.status),
         ]
     )
     

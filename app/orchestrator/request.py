@@ -1,10 +1,11 @@
-from rid_lib.types import SlackMessage, SlackChannel
+from rid_lib.types import SlackMessage, SlackChannel, HTTPS
 
 from app.core import slack_app
 from app.config import OBSERVATORY_CHANNEL_ID
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.components import *
+from app.dereference import deref, transform
 from .consent import create_consent_interaction
 from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
@@ -22,14 +23,18 @@ def create_request_interaction(message, author, tagger):
     p_message.author = author
     p_message.tagger = tagger
     
+    author_name = deref(author)["real_name"]
+    tagger_name = deref(tagger)["real_name"]
+    
+    msg_url = transform(message, HTTPS)
+    
     channel = SlackChannel(message.workspace_id, message.channel_id)
     channel_data = deref(channel)
     print(f"New message <{message}> tagged in #{channel_data['name']} "
-        f"(author: {deref(author)['real_name']}, "
-        f"tagger: {deref(tagger)['real_name']})"
+        f"(author: {author_name}, "
+        f"tagger: {tagger_name})"
     )
     
-    msg_url = transform(message, HTTPS)
     if channel_data["is_private"] == True:
         p_message.status = MessageStatus.UNREACHABLE
         slack_app.client.chat_postMessage(
@@ -37,15 +42,19 @@ def create_request_interaction(message, author, tagger):
             text=f"The <{msg_url}|message you just tagged> is located in a private channel and cannot be observed.")
         print("Message was unreachable")
         return
+    
+    slack_app.client.chat_postMessage(
+        channel=OBSERVATORY_CHANNEL_ID,
+        blocks=[
+            build_request_msg_ref(msg_url, tagger_name)
+        ]
+    )
         
     resp = slack_app.client.chat_postMessage(
         text="Your message has been observed",
         channel=OBSERVATORY_CHANNEL_ID,
-        unfurl_links=False,
         blocks=[
-            build_request_msg_ref(message, author),
-            build_msg_context_row(message, tagger),
-            build_request_msg_status(message),
+            build_request_msg_status(p_message.status),
             build_request_interaction_row(message)
         ]
     )
@@ -102,18 +111,12 @@ def handle_request_interaction(action_id, message):
             channel=p_message.request_interaction.channel_id,
             ts=p_message.request_interaction.message_id,
             blocks=[
-                build_request_msg_ref(message, p_message.author),
-                build_msg_context_row(message, p_message.tagger),
-                build_request_msg_status(message),
+                build_request_msg_status(p_message.status),
                 build_alt_request_interaction_row(message)
             ]
         )
-        
-    
-def handle_alt_request_interaction(action_id, message):
-    p_message = PersistentMessage(message)
-    
-    if action_id == ActionId.UNDO_IGNORE:
+            
+    elif action_id == ActionId.UNDO_IGNORE:
         print(f"Message <{message}> unignored")
         p_message.status = MessageStatus.TAGGED
         
@@ -121,9 +124,7 @@ def handle_alt_request_interaction(action_id, message):
             channel=p_message.request_interaction.channel_id,
             ts=p_message.request_interaction.message_id,
             blocks=[
-                build_request_msg_ref(message, p_message.author),
-                build_msg_context_row(message, p_message.tagger),
-                build_request_msg_status(message),
+                build_request_msg_status(p_message.status),
                 build_request_interaction_row(message)
             ]
         )

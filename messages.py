@@ -1,3 +1,5 @@
 consent_ui_welcome = "Welcome to the Observatory! You are receiving this notice because one of your messages has been tagged for observation. Your decision to opt in or out will apply to this message and all future messages observed by Telescope. If you chose to opt in, you will be informed when new messages are observed and have the option to retract them."
 consent_ui_msg_header = "Your message has been tagged for observation!"
 retract_ui_msg_header = "Your message has been observed by Telescope!"
+retract_success = "Your message has been retracted successfully"
+retract_failure = "The retraction period has passed, please contact researchers directly if you still wish to retract your message"

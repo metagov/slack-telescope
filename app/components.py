@@ -1,206 +1,78 @@
-import re
-from rid_lib.types import HTTPS, SlackUser
-from .dereference import deref, transform
-from .persistent import PersistentMessage
-from .config import TEXT_PREVIEW_CHAR_LIMIT
 from .constants import ActionId, BlockId, status_display
-from .core import workspace_id
+from .blocks import *
 import messages
 
-
-# formatting helper functions
-def truncate_text(string: str):
-    if len(string) > TEXT_PREVIEW_CHAR_LIMIT:
-        return string[:TEXT_PREVIEW_CHAR_LIMIT] + "..."
-    else:
-        return string
-
-def indent_text(string: str):
-    return "\n".join([
-        "&gt;" + line if line.startswith(("> ", "&gt; ")) else "&gt; " + line
-        for line in string.splitlines()  
-    ])
-
-def filter_text(string: str):
-    # replaces all @mentions
-    def replace_match(match):
-        try:
-            user_data = deref(SlackUser(workspace_id, match.group(1)))
-            if not user_data or type(user_data) != dict:
-                return match.group(0)
-            else:
-                return "@" + user_data.get("real_name")
-        except Exception:
-            return match.group(0)
+def build_request_msg_ref(message_url, tagger_name):    
+    return section_block(
+        text_obj(f"*{tagger_name}* tagged a <{message_url}|message>", type="mrkdwn")
+    )
     
-    return re.sub(r"<@(\w+)>", replace_match, string)
-   
-def format_text(string: str):
-    return indent_text(filter_text(truncate_text(string)))
+def build_consent_msg_ref(message_url):
+    return section_block(
+        text_obj(messages.consent_ui_msg_header.replace("message", f"<{message_url}|message>"), type="mrkdwn")
+    )
 
-
-# build slack blocks
-def build_msg_context_row(message, tagger):
-    tagger_name = deref(tagger)["real_name"]
-    permalink = str(transform(message, HTTPS))
-    return {
-        "type": "context",
-        "elements": [{
-            "type": "mrkdwn",
-            "text": f"<#{message.channel_id}> | Tagged by {tagger_name} | <{permalink}|Jump to message>"
-        }]
-    }
-
-def build_request_msg_ref(message, author):
-    formatted_text = format_text(deref(message)["text"])
-    author_name = deref(author)["real_name"]
-    return {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": f"Posted by *{author_name}*\n{formatted_text}"
-        }
-    }
+def build_retract_msg_ref(message_url):
+    return section_block(
+        text_obj(messages.retract_ui_msg_header.replace("message", f"<{message_url}|message>"), type="mrkdwn")
+    )
     
-def build_consent_msg_ref(message):
-    formatted_text = format_text(deref(message)["text"])
-    return {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": f"{messages.consent_ui_msg_header}\n{formatted_text}"
-        }
-    }
+def build_broadcast_msg_ref(message_url):
+    return section_block(
+        text_obj(f"New <{message_url}|message> observed by Telescope", type="mrkdwn")
+    )
 
-def build_retract_msg_ref(message):
-    formatted_text = format_text(deref(message)["text"])
-    return {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": f"{messages.retract_ui_msg_header}\n{formatted_text}"
-        }
-    }
-
-def build_request_msg_status(message):
-    message_status = PersistentMessage(message).status
-    
-    return {
-        "type": "context",
-        "elements": [{
-            "type": "mrkdwn",
-            "text": "Status: " + status_display[message_status]
-        }]
-    }
-    
-def build_retract_msg_status(message):    
-    return {
-        "type": "context",
-        "elements": [{
-            "type": "mrkdwn",
-            "text": message
-        }]
-    }
-
-def build_request_interaction_row(rid):
-    payload = str(rid)
-    return {
-        "type": "actions",
-        "block_id": BlockId.REQUEST,
-        "elements": [
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Request"
-                },
-                "style": "primary",
-                "action_id": ActionId.REQUEST,
-                "value": payload
-            },
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Ignore"
-                },
-                "action_id": ActionId.IGNORE,
-                "value": payload
-            }
+def build_request_msg_status(message_status):    
+    return context_block(
+        elements=[
+            text_obj("Status: " + status_display[message_status], type="mrkdwn")
         ]
-    }
+    )
     
-def build_alt_request_interaction_row(rid):
-    payload = str(rid)
-    return {
-        "type": "actions",
-        "block_id": BlockId.ALT_REQUEST,
-        "elements": [
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Undo Ignore"
-                },
-                "action_id": ActionId.UNDO_IGNORE,
-                "value" : payload
-            }
+def build_basic_section(text):
+    return section_block(
+        text_obj(text, type="mrkdwn")
+    )
+    
+def build_basic_context(text):
+    return context_block(
+        elements=[
+            text_obj(text, type="mrkdwn")
         ]
-    }
-
-def build_consent_interaction_row(rid):
-    payload = str(rid)
-    return {
-        "type": "actions",
-        "block_id": BlockId.CONSENT,
-        "elements": [
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Opt in"
-                },
-                "style": "primary",
-                "action_id": ActionId.OPT_IN,
-                "value": payload
-            },
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Opt in (anonymously)"
-                },
-                "style": "primary",
-                "action_id": ActionId.OPT_IN_ANON,
-                "value": payload
-            },
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Opt out"
-                },
-                "action_id": ActionId.OPT_OUT,
-                "value": payload
-            }
+    )
+    
+def build_request_interaction_row(rid):    
+    return action_block(
+        block_id=BlockId.REQUEST,
+        elements=[
+            button_block(ActionId.REQUEST, text_obj("Request"), str(rid), style="primary"),
+            button_block(ActionId.IGNORE, text_obj("Ignore"), str(rid))
         ]
-    }
-
-def build_retract_interaction_row(rid):
-    payload = str(rid)
-    return {
-        "type": "actions",
-        "block_id": BlockId.RETRACT,
-        "elements": [
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Retract"
-                },
-                "style": "danger",
-                "action_id": ActionId.RETRACT,
-                "value": payload
-            }
+    )
+    
+def build_alt_request_interaction_row(rid):    
+    return action_block(
+        block_id=BlockId.REQUEST,
+        elements=[
+            button_block(ActionId.UNDO_IGNORE, text_obj("Undo Ignore"), str(rid))
         ]
-    }
+    )
+    
+def build_consent_interaction_row(rid):    
+    return action_block(
+        block_id=BlockId.CONSENT,
+        elements=[
+            button_block(ActionId.OPT_IN, text_obj("Opt in"), str(rid)),
+            button_block(ActionId.OPT_IN_ANON, text_obj("Opt in (anonymously)"), str(rid)),
+            button_block(ActionId.OPT_OUT, text_obj("Opt out"), str(rid))
+        ]
+    )
+    
+def build_retract_interaction_row(rid):    
+    return action_block(
+        block_id=BlockId.RETRACT,
+        elements=[
+            button_block(ActionId.RETRACT, text_obj("Retract"), str(rid), style="danger")
+        ]
+    )
+    

@@ -33,7 +33,8 @@ def export_to_csv():
         "created_at",
         "tagger_rid",
         "tagger_name",
-        "retraction_time_elapsed"
+        "retraction_time_elapsed",
+        "comments"
     ])
 
     for msg in message_rids:
@@ -48,6 +49,8 @@ def export_to_csv():
         author_data = deref(p_msg.author)
         tagger_data = deref(p_msg.tagger)
         msg_url = transform(msg, HTTPS)
+        
+        comments = ";".join(p_msg.comments)
         
         in_thread = msg.message_id != message_data.get("thread_ts", msg.message_id)
         
@@ -78,7 +81,8 @@ def export_to_csv():
             created_at,
             str(p_msg.tagger),
             tagger_data.get("real_name"),
-            retraction_time_elapsed(p_msg)
+            retraction_time_elapsed(p_msg),
+            comments
         ])
         
     return filename

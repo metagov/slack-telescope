@@ -75,7 +75,7 @@ def build_request_msg_status(message):
     message_status = PersistentMessage(message).status
         
     return context_block([
-        text_obj(f"Status: {status_display[message_status]} (reply here to add comments)", type="mrkdwn")
+        text_obj(f"Status: {status_display[message_status]}", type="mrkdwn")
     ])
     
 def build_basic_section(text):

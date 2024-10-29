@@ -2,8 +2,7 @@ from rid_lib.types import SlackMessage, SlackUser
 from .core import slack_app
 from .config import TELESCOPE_EMOJI, SLACK_BOT_USER_ID, OBSERVATORY_CHANNEL_ID
 from . import orchestrator
-from .dereference import deref
-
+from .persistent import PersistentMessage, get_linked_message
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(body, event):        
@@ -37,12 +36,14 @@ def handle_message_reply(event):
     if event.get("parent_user_id") != SLACK_BOT_USER_ID:
         return
     
-    request_msg = SlackMessage(
+    request_interaction = SlackMessage(
         event["team"],
         event["channel"],
         event["thread_ts"]
     )
-    
+        
+    p_message = PersistentMessage(get_linked_message(request_interaction))
+    p_message.add_comment(event["text"])
     
     slack_app.client.reactions_add(
         channel=event["channel"],
@@ -50,4 +51,3 @@ def handle_message_reply(event):
         name="thumbsup"
     )
     
-    breakpoint()

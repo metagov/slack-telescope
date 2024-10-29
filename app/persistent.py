@@ -102,6 +102,22 @@ class PersistentMessage(PersistentObject):
         self._data["comments"].append(comment)
         self._write()
         
+class PersistentRequestLink(PersistentObject):
+    _instances = {}
+    
+    message = persistent_prop("message", rid=True)
+
+    def __init__(self, rid: RID):
+        super().__init__(rid, {
+            "status": None
+        })
+
+def create_link(request_interaction, message):
+    PersistentRequestLink(request_interaction).message = message
+    
+def get_linked_message(request_interaction):
+    return PersistentRequestLink(request_interaction).message
+        
 
 def retrieve_all_rids():
     return [

@@ -2,7 +2,7 @@ from rid_lib.types import SlackMessage, SlackChannel, HTTPS
 
 from app.core import slack_app
 from app.config import OBSERVATORY_CHANNEL_ID
-from app.persistent import PersistentMessage, PersistentUser
+from app.persistent import PersistentMessage, PersistentUser, create_link
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.components import *
 from app.dereference import deref, transform
@@ -59,6 +59,8 @@ def create_request_interaction(message, author, tagger):
         resp["channel"],
         resp["message"]["ts"]
     )
+    
+    create_link(p_message.request_interaction, message)
     
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)

@@ -7,9 +7,9 @@ from .core import slack_app, cache, trans_cache
 
 dereference_table = {
     SlackUser:  
-        lambda rid: slack_app.client.users_profile_get(
+        lambda rid: slack_app.client.users_info(
             user=rid.user_id
-        )["profile"],
+        )["user"],
 
     SlackMessage:  
         lambda rid: slack_app.client.conversations_replies(

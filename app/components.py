@@ -68,7 +68,7 @@ def build_broadcast_msg_ref(message):
     author_name = deref(PersistentMessage(message).author)["real_name"]
     
     return section_block(
-        text_obj(f"Observed a message from *{author_name}*\n{format_text(message)}", type="mrkdwn")
+        text_obj(format_text(message), type="mrkdwn")
     )
 
 def build_request_msg_status(message):

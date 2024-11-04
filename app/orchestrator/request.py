@@ -65,13 +65,18 @@ def create_request_interaction(message, author, tagger):
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
+    author = deref(p_message.author)
             
     if action_id == ActionId.REQUEST:
         print(f"Message <{message}> requested")
         
         if p_user.status == UserStatus.UNSET:
             print(f"User <{p_message.author}> status is unset")
-            create_consent_interaction(message)
+            
+            if author["is_bot"]:
+                p_user.status = UserStatus.OPT_IN
+            else:
+                create_consent_interaction(message)
             
         if p_user.status == UserStatus.PENDING:
             print(f"User <{p_message.author}> status is pending")

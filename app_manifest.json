@@ -23,17 +23,26 @@
                 "channels:read",
                 "chat:write",
                 "commands",
+                "files:write",
+                "groups:history",
+                "groups:read",
+                "im:history",
+                "im:read",
                 "reactions:read",
+                "reactions:write",
                 "team:read",
                 "users.profile:read",
-                "files:write"
+                "users:read"
             ]
         }
     },
     "settings": {
         "event_subscriptions": {
             "bot_events": [
-                "reaction_added"
+                "message.channels",
+                "message.groups",
+                "reaction_added",
+                "reaction_removed"
             ]
         },
         "interactivity": {

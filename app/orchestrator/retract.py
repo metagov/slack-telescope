@@ -40,8 +40,8 @@ def create_retract_interaction(message):
 def handle_retract_interaction(action_id, message):
     p_message = PersistentMessage(message)
     
-    if action_id == ActionId.RETRACT:
-        if not retraction_time_elapsed(p_message):
+    if not retraction_time_elapsed(p_message):
+        if action_id == ActionId.RETRACT:
             print(f"Message <{message}> retracted")
             p_message.status = MessageStatus.RETRACTED
         
@@ -59,17 +59,32 @@ def handle_retract_interaction(action_id, message):
             )
         
             delete_broadcast(message)    
-            refresh_request_interaction(message)
-                
-        else:
-            print(f"Message <{message}> could not be retracted")
+        
+        elif action_id == ActionId.ANONYMIZE:
+            print(f"Message <{message}> anonymized")
+            p_message.status = MessageStatus.ACCEPTED_ANON
+            
             slack_app.client.chat_update(
                 channel=p_message.retract_interaction.channel_id,
                 ts=p_message.retract_interaction.message_id,
                 blocks=[
                     build_retract_msg_ref(message),
                     build_msg_context_row(message),
-                    build_basic_context(messages.retract_failure)
+                    build_basic_context(messages.anonymize_success)
                 ]
             )
+        
+        refresh_request_interaction(message)
+                        
+    else:
+        print(f"Message <{message}> could not be retracted")
+        slack_app.client.chat_update(
+            channel=p_message.retract_interaction.channel_id,
+            ts=p_message.retract_interaction.message_id,
+            blocks=[
+                build_retract_msg_ref(message),
+                build_msg_context_row(message),
+                build_basic_context(messages.retract_failure)
+            ]
+        )
         

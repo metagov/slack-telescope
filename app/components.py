@@ -64,9 +64,7 @@ def build_retract_msg_ref(message):
         text_obj(messages.retract_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
     )
     
-def build_broadcast_msg_ref(message):
-    author_name = deref(PersistentMessage(message).author)["real_name"]
-    
+def build_broadcast_msg_ref(message):    
     return section_block(
         text_obj(format_text(message), type="mrkdwn")
     )
@@ -121,7 +119,8 @@ def build_retract_interaction_row(rid):
     return action_block(
         block_id=BlockId.RETRACT,
         elements=[
-            button_block(ActionId.RETRACT, text_obj("Retract"), str(rid), style="danger")
+            button_block(ActionId.RETRACT, text_obj("Retract"), str(rid), style="danger"),
+            button_block(ActionId.ANONYMIZE, text_obj("Anonymize"), str(rid))
         ]
     )
     

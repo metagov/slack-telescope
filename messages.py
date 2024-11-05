@@ -2,4 +2,5 @@ consent_ui_welcome = "Welcome to the Observatory! You are receiving this notice 
 consent_ui_msg_header = "Your message has been tagged for observation!"
 retract_ui_msg_header = "Your message has been observed by Telescope!"
 retract_success = "Your message has been retracted successfully"
-retract_failure = "The retraction period has passed, please contact researchers directly if you still wish to retract your message"
+retract_failure = "The retraction period has passed, please contact researchers directly if you still wish to retract or anonymize your message"
+anonymize_success = "Your message has been anonymized successfully"

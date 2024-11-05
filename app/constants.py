@@ -34,6 +34,7 @@ class ActionId:
     OPT_IN_ANON = "opt_in_anon"
     OPT_OUT = "opt_out"
     RETRACT = "retract"
+    ANONYMIZE = "anonymize"
     
 class BlockId:
     REQUEST = "request"

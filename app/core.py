@@ -18,4 +18,6 @@ if ENABLE_GRAPH:
 else:
     graph = None
 
-workspace_id = slack_app.client.team_info().data["team"]["id"]
+result = slack_app.client.auth_test().data
+workspace_id = result["team_id"]
+bot_user_id = result["user_id"]

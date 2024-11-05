@@ -24,11 +24,11 @@ dereference_table = {
         )["channel"]
 }
 
-def deref(rid: RID):
+def deref(rid: RID, refresh=False):
     dereference_func = dereference_table.get(type(rid))
     cache_obj = cache.read(rid)
         
-    if cache_obj:
+    if cache_obj and not refresh:
         return cache_obj.data
     
     if dereference_func:

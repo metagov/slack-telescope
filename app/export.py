@@ -34,6 +34,7 @@ def export_to_csv():
         "tagger_rid",
         "tagger_name",
         "retraction_time_elapsed",
+        "emojis",
         "comments"
     ])
 
@@ -50,7 +51,18 @@ def export_to_csv():
         tagger_data = deref(p_msg.tagger)
         msg_url = transform(msg, HTTPS)
         
-        comments = ";".join(p_msg.comments)
+        if p_msg.emojis:
+            emojis = ";".join([
+                k for k, v in p_msg.emojis.items()
+                if v > 0
+            ])
+        else:
+            emojis = ""
+        
+        if p_msg.comments:
+            comments = ";".join(p_msg.comments)
+        else:
+            comments = ""
         
         in_thread = msg.message_id != message_data.get("thread_ts", msg.message_id)
         
@@ -82,6 +94,7 @@ def export_to_csv():
             str(p_msg.tagger),
             tagger_data.get("real_name"),
             retraction_time_elapsed(p_msg),
+            emojis,
             comments
         ])
         

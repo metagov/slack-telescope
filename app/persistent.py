@@ -20,7 +20,7 @@ class PersistentObject:
         self.rid = rid
         self._data = self._read() or default_data
         self._data["rid"] = str(rid)
-        self._write()
+        # self._write()
         
     @property
     def _file_path(self):
@@ -45,8 +45,9 @@ class PersistentObject:
     
 def persistent_prop(attribute, rid=False):
     def getter(self: PersistentObject):
-        value = self._data[attribute]
-        return RID.from_string(value) if rid else value
+        value = self._data.get(attribute)
+        if value:
+            return RID.from_string(value) if rid else value
     
     def setter(self: PersistentObject, value):
         self._data[attribute] = str(value) if rid else value
@@ -91,16 +92,27 @@ class PersistentMessage(PersistentObject):
     permalink = persistent_prop("permalink", rid=True)
     
     comments = persistent_prop("comments")
+    emojis = persistent_prop("emojis")
     
     def __init__(self, rid: RID):
         super().__init__(rid, {
-            "status": MessageStatus.UNSET,
-            "comments": []
+            "status": MessageStatus.UNSET
         })
         
     def add_comment(self, comment: str):
-        self._data["comments"].append(comment)
+        self._data.setdefault("comments", []).append(comment)
         self._write()
+        
+    def add_emoji(self, emoji_str: str):
+        emojis = self._data.setdefault("emojis", {})
+        emojis[emoji_str] = emojis.get(emoji_str, 0) + 1
+        self._write()
+    
+    def remove_emoji(self, emoji_str: str):
+        emojis = self._data.setdefault("emojis", {})
+        emojis[emoji_str] = max(emojis.get(emoji_str, 0) - 1, 0)
+        self._write()
+        return emojis[emoji_str]
         
 class PersistentRequestLink(PersistentObject):
     _instances = {}

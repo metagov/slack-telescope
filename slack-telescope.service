@@ -1,0 +1,11 @@
+[Unit]
+Description=Slack Telescope Bot Service
+After=network.target
+
+[Service]
+WorkingDirectory=/root/slack-telescope
+ExecStart=/root/slack-telescope/venv/bin/python3 -m app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

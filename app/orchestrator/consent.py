@@ -3,10 +3,10 @@ from app.core import slack_app
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.components import *
+from app import messages
 from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
-import messages
 
 
 def create_consent_interaction(message):

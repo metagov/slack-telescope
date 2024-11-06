@@ -1,13 +1,12 @@
+import re
+from rid_lib.types import SlackUser
 from .constants import ActionId, BlockId, status_display
 from .blocks import *
-import messages
-
-import re
 from .persistent import PersistentMessage
 from .config import TEXT_PREVIEW_CHAR_LIMIT
 from .dereference import deref
-from rid_lib.types import SlackUser
 from .core import workspace_id
+from . import messages
 
 
 def replace_match(match):

@@ -5,9 +5,9 @@ from app.constants import MessageStatus
 from app.components import *
 from app.utils import retraction_time_elapsed
 from app.config import ENABLE_GRAPH
+from app import messages
 from .refresh import refresh_request_interaction
 from .broadcast import delete_broadcast
-import messages
 
 
 def create_retract_interaction(message):

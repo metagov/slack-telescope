@@ -16,7 +16,7 @@ with open("backfill.json", "r") as f:
         
         
 messages.sort(key=lambda x: x.message_id)
-for message in messages:
+for i, message in enumerate(messages):
     message_data = deref(message)
     
     author_user_id = message_data["user"]
@@ -28,6 +28,7 @@ for message in messages:
     
     author = SlackUser(message.workspace_id, author_user_id)
     tagger = SlackUser(message.workspace_id, tagger_user_id)
-                
+    
+    print(i, "/", len(messages), end=" ")
     orchestrator.create_request_interaction(message, author, tagger)
     time.sleep(1)

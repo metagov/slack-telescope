@@ -18,6 +18,7 @@ def create_consent_interaction(message):
     
     slack_app.client.chat_postMessage(
         channel=p_message.author.user_id,
+        unfurl_links=False,
         blocks=[
             build_basic_section(messages.consent_ui_welcome),
         ]

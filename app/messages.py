@@ -5,7 +5,9 @@ We’d like your permission to quote you in our research. Here’s how it works:
  - If you opt in, *you will be notified whenever new messages are observed,* and you will have the option to retract them. Retracted messages will be removed from the ethnographic dataset.
  - Messages can be *automatically retracted via the Telescope bot for up to four weeks* after being added to the ethnographic dataset. After this period, individuals must contact <@U04SDK8LGUX> directly via DM to retract messages.
  - You may *withdraw your consent entirely at any time,* in which case none of your posts will be quoted in future research publications. 
+ 
  - Additional information regarding the role and rights of ethnographic research participants can be found <https://www.dropbox.com/scl/fi/29fs3374ixbfbqkjobt4j/KOI_PISCF_v2.docx?rlkey=z1wsu6rjgn2qj7lv5l8r3vqjw&st=p3llut7a&dl=0|here>.
+
 
 *Note:* This consent is for the ethnographic research only. Metagov has a separate <https://metagov.pubpub.org/pub/data-policy/release/10|data use policy> regarding its use of Slack messages.
 

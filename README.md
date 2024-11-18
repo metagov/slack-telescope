@@ -11,5 +11,6 @@ Installation instructions:
 8. Copy the Bot User OAuth Token into ".env" prefixed by "SLACK_BOT_TOKEN="
 9. Create a private #observatory channel and public #telescopes channel
 10. Set the OBSERVATORY_CHANNEL_ID and BROADCAST_CHANNEL_ID in app/config.py with the ids of the channels you just created
-11. Start the Telescope bot by running `python -m app` from the root project directory
-12. (Optional) Automate the bot using the provided slack-telescope.service file
+11. Add the Telescope bot/app to both channels
+12. Start the Telescope bot by running `python -m app` from the root project directory
+13. (Optional) Automate the bot using the provided slack-telescope.service file

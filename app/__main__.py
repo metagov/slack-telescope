@@ -5,7 +5,4 @@ from .config import SLACK_APP_TOKEN, OBSERVATORY_CHANNEL_ID, BROADCAST_CHANNEL_I
 
 from . import events, actions, commands
 
-slack_app.client.conversations_join(channel=OBSERVATORY_CHANNEL_ID)
-slack_app.client.conversations_join(channel=BROADCAST_CHANNEL_ID)
-
 SocketModeHandler(slack_app, SLACK_APP_TOKEN).start()

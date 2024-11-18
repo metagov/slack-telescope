@@ -108,9 +108,9 @@ def build_consent_interaction_row(rid):
     return action_block(
         block_id=BlockId.CONSENT,
         elements=[
-            button_block(ActionId.OPT_IN, text_obj("Opt in"), str(rid)),
-            button_block(ActionId.OPT_IN_ANON, text_obj("Opt in (anonymously)"), str(rid)),
-            button_block(ActionId.OPT_OUT, text_obj("Opt out"), str(rid))
+            button_block(ActionId.OPT_IN, text_obj(":white_check_mark: Opt in"), str(rid)),
+            button_block(ActionId.OPT_IN_ANON, text_obj(":warning: Opt in (anonymously)"), str(rid)),
+            button_block(ActionId.OPT_OUT, text_obj(":x: Opt out"), str(rid))
         ]
     )
     

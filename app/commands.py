@@ -20,3 +20,9 @@ def handle_export_command(ack, command, say):
         channel=command["channel_id"],
         initial_comment="Exported data."
     )
+    
+@slack_app.command("/ping")
+def handle_ping_command(ack, say):
+    ack()
+    
+    say(text="Pong!")

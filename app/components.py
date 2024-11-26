@@ -5,13 +5,13 @@ from .blocks import *
 from .persistent import PersistentMessage
 from .config import TEXT_PREVIEW_CHAR_LIMIT
 from .dereference import deref
-from .core import workspace_id
+from .core import team_id
 from . import messages
 
 
 def replace_match(match):
     try:
-        user_data = deref(SlackUser(workspace_id, match.group(1)))
+        user_data = deref(SlackUser(team_id, match.group(1)))
         if not user_data or type(user_data) != dict:
             return match.group(0)
         else:
@@ -37,7 +37,7 @@ def build_msg_context_row(message):
     p_message = PersistentMessage(message)
     author_name = deref(p_message.author)["real_name"]
     
-    timestamp = message.message_id.split(".")[0]
+    timestamp = message.ts.split(".")[0]
         
     return context_block([
         text_obj(

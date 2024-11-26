@@ -28,7 +28,7 @@ def create_request_interaction(message, author, tagger):
     tagger_name = deref(tagger)["real_name"]
     
     
-    channel = SlackChannel(message.workspace_id, message.channel_id)
+    channel = SlackChannel(message.team_id, message.channel_id)
     channel_data = deref(channel)
     print(f"New message <{message}> tagged in #{channel_data['name']} "
         f"(author: {author_name}, "
@@ -111,7 +111,7 @@ def handle_request_interaction(action_id, message):
         
         slack_app.client.chat_update(
             channel=p_message.request_interaction.channel_id,
-            ts=p_message.request_interaction.message_id,
+            ts=p_message.request_interaction.ts,
             blocks=[
                 build_request_msg_ref(message),
                 build_msg_context_row(message),
@@ -126,7 +126,7 @@ def handle_request_interaction(action_id, message):
         
         slack_app.client.chat_update(
             channel=p_message.request_interaction.channel_id,
-            ts=p_message.request_interaction.message_id,
+            ts=p_message.request_interaction.ts,
             blocks=[
                 build_request_msg_ref(message),
                 build_msg_context_row(message),

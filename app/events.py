@@ -27,7 +27,7 @@ def handle_reaction_added(body, event):
             # acknowledge emoji
             slack_app.client.reactions_add(
                 channel=tagged_msg.channel_id,
-                timestamp=tagged_msg.message_id,
+                timestamp=tagged_msg.ts,
                 name=emoji_str
             )
     
@@ -59,7 +59,7 @@ def handle_reaction_removed(body, event):
             if num_reactions == 0:
                 slack_app.client.reactions_remove(
                     channel=tagged_msg.channel_id,
-                    timestamp=tagged_msg.message_id,
+                    timestamp=tagged_msg.ts,
                     name=emoji_str
                 )
             

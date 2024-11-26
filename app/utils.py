@@ -30,7 +30,7 @@ def rid_params(rid: RID):
     
 def retraction_time_elapsed(p_message):
     initial_date = datetime.fromtimestamp(
-        float(p_message.retract_interaction.message_id),
+        float(p_message.retract_interaction.ts),
         timezone.utc
     )
     

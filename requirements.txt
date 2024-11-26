@@ -1,4 +1,4 @@
 slack_bolt
 neo4j
 python-dotenv
-git+https://github.com/BlockScience/rid-lib.git@v3
+rid-lib==3.0.0-beta.1

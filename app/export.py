@@ -45,7 +45,7 @@ def export_to_csv():
             continue
         
         message_data = deref(msg)
-        channel = SlackChannel(msg.workspace_id, msg.channel_id)
+        channel = SlackChannel(msg.team_id, msg.channel_id)
         channel_data = deref(channel)
         author_data = deref(p_msg.author)
         tagger_data = deref(p_msg.tagger)
@@ -64,10 +64,10 @@ def export_to_csv():
         else:
             comments = ""
         
-        in_thread = msg.message_id != message_data.get("thread_ts", msg.message_id)
+        in_thread = msg.ts != message_data.get("thread_ts", msg.ts)
         
         created_at = datetime.fromtimestamp(
-            float(msg.message_id), timezone.utc
+            float(msg.ts), timezone.utc
             ).strftime("%Y-%m-%d %H:%M:%S")
         
         if p_msg.status == MessageStatus.ACCEPTED:

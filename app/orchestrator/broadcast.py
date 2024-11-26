@@ -29,5 +29,5 @@ def delete_broadcast(message: SlackMessage):
     
     slack_app.client.chat_delete(
         channel=p_message.broadcast_interaction.channel_id,
-        ts=p_message.broadcast_interaction.message_id
+        ts=p_message.broadcast_interaction.ts
     )

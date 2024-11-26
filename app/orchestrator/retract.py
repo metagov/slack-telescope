@@ -50,7 +50,7 @@ def handle_retract_interaction(action_id, message):
                 
             slack_app.client.chat_update(
                 channel=p_message.retract_interaction.channel_id,
-                ts=p_message.retract_interaction.message_id,
+                ts=p_message.retract_interaction.ts,
                 blocks=[
                     build_retract_msg_ref(message),
                     build_msg_context_row(message),
@@ -66,7 +66,7 @@ def handle_retract_interaction(action_id, message):
             
             slack_app.client.chat_update(
                 channel=p_message.retract_interaction.channel_id,
-                ts=p_message.retract_interaction.message_id,
+                ts=p_message.retract_interaction.ts,
                 blocks=[
                     build_retract_msg_ref(message),
                     build_msg_context_row(message),
@@ -80,7 +80,7 @@ def handle_retract_interaction(action_id, message):
         print(f"Message <{message}> could not be retracted")
         slack_app.client.chat_update(
             channel=p_message.retract_interaction.channel_id,
-            ts=p_message.retract_interaction.message_id,
+            ts=p_message.retract_interaction.ts,
             blocks=[
                 build_retract_msg_ref(message),
                 build_msg_context_row(message),

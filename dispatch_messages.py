@@ -15,7 +15,7 @@ with open("backfill.json", "r") as f:
         messages.extend([RID.from_string(msg_str) for msg_str in channel["messages"]])
         
         
-messages.sort(key=lambda x: x.message_id)
+messages.sort(key=lambda x: x.ts)
 for i, message in enumerate(messages):
     message_data = deref(message)
     
@@ -26,8 +26,8 @@ for i, message in enumerate(messages):
             tagger_user_id = reaction["users"][0]
             break
     
-    author = SlackUser(message.workspace_id, author_user_id)
-    tagger = SlackUser(message.workspace_id, tagger_user_id)
+    author = SlackUser(message.team_id, author_user_id)
+    tagger = SlackUser(message.team_id, tagger_user_id)
     
     print(i, "/", len(messages), end=" ")
     orchestrator.create_request_interaction(message, author, tagger)

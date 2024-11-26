@@ -49,7 +49,7 @@ def handle_consent_interaction(action_id, message):
     
     slack_app.client.chat_delete(
         channel=p_message.consent_interaction.channel_id,
-        ts=p_message.consent_interaction.message_id
+        ts=p_message.consent_interaction.ts
     )
     
     print(f"User <{p_message.author}> has set consent status to {action_id}")

@@ -7,7 +7,7 @@ def refresh_request_interaction(message):
     
     slack_app.client.chat_update(
         channel=p_message.request_interaction.channel_id,
-        ts=p_message.request_interaction.message_id,
+        ts=p_message.request_interaction.ts,
         blocks=[
             build_request_msg_ref(message),
             build_msg_context_row(message),

@@ -14,7 +14,7 @@ dereference_table = {
     SlackMessage:  
         lambda rid: slack_app.client.conversations_replies(
             channel=rid.channel_id, 
-            ts=rid.message_id,
+            ts=rid.ts,
             limit=1
         )["messages"][0],
         
@@ -45,7 +45,7 @@ def deref(rid: RID, refresh=False):
 def transform_slack_message_to_http(rid: SlackMessage):
     resp = slack_app.client.chat_getPermalink(
         channel=rid.channel_id,
-        message_ts=rid.message_id
+        message_ts=rid.ts
     )
     return RID.from_string(resp["permalink"])
 

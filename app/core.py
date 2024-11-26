@@ -19,5 +19,5 @@ else:
     graph = None
 
 result = slack_app.client.auth_test().data
-workspace_id = result["team_id"]
+team_id = result["team_id"]
 bot_user_id = result["user_id"]

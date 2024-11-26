@@ -19,6 +19,12 @@ def hash_json(data: dict):
     hash.update(json_bytes)
     return hash.hexdigest()
 
+def normalize_legacy_prefix(rid_string: str):
+    if rid_string.startswith("ori:"):
+        return "orn:" + rid_string[4:]
+    else:
+        return rid_string
+
 def rid_params(rid: RID):
     return {
         "scheme": rid.scheme,
@@ -30,7 +36,7 @@ def rid_params(rid: RID):
     
 def retraction_time_elapsed(p_message):
     initial_date = datetime.fromtimestamp(
-        float(p_message.retract_interaction.message_id),
+        float(p_message.retract_interaction.ts),
         timezone.utc
     )
     

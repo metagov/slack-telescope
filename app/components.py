@@ -21,16 +21,21 @@ def replace_match(match):
 
 def format_text(message):
     text = deref(message)["text"]
-    
+            
     if len(text) > TEXT_PREVIEW_CHAR_LIMIT:
         text = text[:TEXT_PREVIEW_CHAR_LIMIT] + "..."
+    
+    text = text.replace("<!everyone>", "@ everyone")
+    text = text.replace("<!channel>", "@ channel")
+    text = text.replace("<!here>", "@ here")
+    text = re.sub(r"<!subteam\^(\w+)>", "@ subteam", text)
     
     filtered_str = re.sub(r"<@(\w+)>", replace_match, text)
     indented_str = "\n".join([
         "&gt;" + line if line.startswith(("> ", "&gt; ")) else "&gt; " + line
         for line in filtered_str.splitlines()  
     ])
-    
+        
     return indented_str
 
 def build_msg_context_row(message):

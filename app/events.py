@@ -19,6 +19,10 @@ def handle_reaction_added(body, event):
     emoji_str = event["reaction"]
     
     if event["item_user"] == bot_user_id:
+        # only handle reqactions to interactions in the observatory
+        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
+            return
+        
         print(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
         p_msg = PersistentMessage(get_linked_message(tagged_msg))
         if p_msg.status != MessageStatus.UNSET:
@@ -50,7 +54,11 @@ def handle_reaction_removed(body, event):
     emoji_str = event["reaction"]
 
     if event["item_user"] == bot_user_id:
-        print(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
+        # only handle reqactions to interactions in the observatory
+        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
+            return
+        
+        print(f"Removing '{emoji_str}' emoji from <{tagged_msg}>")
         p_msg = PersistentMessage(get_linked_message(tagged_msg))
         if p_msg.status != MessageStatus.UNSET:
             num_reactions = p_msg.remove_emoji(emoji_str)

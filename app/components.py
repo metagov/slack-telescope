@@ -41,7 +41,7 @@ def build_msg_context_row(message):
         
     return context_block([
         text_obj(
-            f"Posted in <#{message.channel_id}> by *{author_name}* | <!date^{timestamp}^{{date_pretty}} at {{time}}|(time unknown))> | <{p_message.permalink}|View message>",
+            f"Posted in <#{message.channel_id}> by *{author_name}* | <!date^{timestamp}^{{date_pretty}} at {{time}}|(time unknown)> | <{p_message.permalink}|View message>",
             type="mrkdwn"
         )
     ])

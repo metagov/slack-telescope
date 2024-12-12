@@ -1,6 +1,5 @@
-import os
-from .core import slack_app
-from .export import export_msgs_to_csv
+from app.core import slack_app
+from app.export import export_msgs_to_csv
 
 
 @slack_app.command("/export_csv")

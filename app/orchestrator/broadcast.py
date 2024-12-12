@@ -2,7 +2,7 @@ from rid_lib.types import SlackMessage
 from app.core import slack_app
 from app.config import BROADCAST_CHANNEL_ID
 from app.persistent import PersistentMessage
-from app.components import *
+from app.slack_interface.components import *
 
 
 def create_broadcast(message):

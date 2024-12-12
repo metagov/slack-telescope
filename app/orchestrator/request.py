@@ -4,7 +4,7 @@ from app.core import slack_app
 from app.config import OBSERVATORY_CHANNEL_ID
 from app.persistent import PersistentMessage, PersistentUser, create_link
 from app.constants import MessageStatus, UserStatus, ActionId
-from app.components import *
+from app.slack_interface.components import *
 from app.dereference import deref, transform
 from .consent import create_consent_interaction
 from .refresh import refresh_request_interaction

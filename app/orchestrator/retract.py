@@ -2,7 +2,7 @@ from rid_lib.types import SlackMessage
 from app.core import slack_app, graph
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
-from app.components import *
+from app.slack_interface.components import *
 from app.utils import retraction_time_elapsed
 from app.config import ENABLE_GRAPH
 from app import messages

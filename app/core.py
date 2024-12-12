@@ -1,5 +1,5 @@
 from slack_bolt import App
-
+from slack_bolt.adapter.fastapi import SlackRequestHandler
 from .config import *
 from .cache import CacheInterface, TransformationCacheInterface
 from .graph import GraphInterface
@@ -9,6 +9,8 @@ slack_app = App(
     signing_secret=SLACK_SIGNING_SECRET,
     raise_error_for_unhandled_request=False
 )
+
+slack_handler = SlackRequestHandler(slack_app)
 
 cache = CacheInterface(CACHE_DIR)
 trans_cache = TransformationCacheInterface()

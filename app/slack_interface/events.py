@@ -1,9 +1,9 @@
 from rid_lib.types import SlackMessage, SlackUser
-from .core import slack_app, bot_user_id
-from .config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
-from . import orchestrator
-from .persistent import PersistentMessage, get_linked_message
-from .constants import MessageStatus
+from app.core import slack_app, bot_user_id
+from app.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
+from app import orchestrator
+from app.persistent import PersistentMessage, get_linked_message
+from app.constants import MessageStatus
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(body, event):        

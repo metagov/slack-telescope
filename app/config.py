@@ -21,6 +21,7 @@ ENABLE_GRAPH = False
 
 CACHE_DIR = "cache"
 PERSISTENT_DIR = "persistent"
+AUTH_JSON_PATH = "auth.json"
 
 NEO4J_URI = "bolt://localhost:7687"
 NEO4J_AUTH = ("neo4j", "telescope")

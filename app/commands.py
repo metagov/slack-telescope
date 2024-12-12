@@ -1,6 +1,6 @@
 import os
 from .core import slack_app
-from .export import export_to_csv
+from .export import export_msgs_to_csv
 
 
 @slack_app.command("/export_csv")
@@ -12,7 +12,7 @@ def handle_export_command(ack, command, say):
         text="Beginning export... (this might take a few moments!)"
     )
     
-    filename = export_to_csv()
+    filename = export_msgs_to_csv()
         
     slack_app.client.files_upload_v2(
         file=filename,

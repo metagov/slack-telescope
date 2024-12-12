@@ -1,43 +1,53 @@
 from slack_sdk.errors import SlackApiError
 from rid_lib.core import RID
-from rid_lib.types import SlackMessage, SlackUser, SlackChannel, HTTPS
+from rid_lib.types import SlackMessage, SlackUser, SlackChannel, SlackWorkspace, HTTPS
 
 from .core import slack_app, cache, trans_cache
 
 
 dereference_table = {
-    SlackUser:  
+    SlackUser.context:  
         lambda rid: slack_app.client.users_info(
             user=rid.user_id
         )["user"],
 
-    SlackMessage:  
+    SlackMessage.context:  
         lambda rid: slack_app.client.conversations_replies(
             channel=rid.channel_id, 
             ts=rid.ts,
             limit=1
         )["messages"][0],
         
-    SlackChannel: 
+    SlackChannel.context: 
         lambda rid: slack_app.client.conversations_info(
             channel=rid.channel_id
-        )["channel"]
+        )["channel"],
+        
+    SlackWorkspace.context:
+        lambda rid: slack_app.client.team_info(
+            team=rid.team_id
+        )["team"]
 }
 
 def deref(rid: RID, refresh=False):
-    dereference_func = dereference_table.get(type(rid))
+    dereference_func = dereference_table.get(rid.context)
     cache_obj = cache.read(rid)
         
     if cache_obj and not refresh:
         return cache_obj.data
     
     if dereference_func:
-        try:
-            data = dereference_func(rid)
-            cache.write(rid, data)
-            return data
-        except SlackApiError as e:
-            print(e)
+        while True:
+            try:
+                data = dereference_func(rid)
+                cache.write(rid, data)
+                return data
+            except SlackApiError as e:
+                if e.response["error"] == "not_in_channel":
+                    print("joining channel", rid.channel_id)
+                    slack_app.client.conversations_join(channel=rid.channel_id)
+                else:
+                    break
     else:
         raise Exception(f"No dereference func defined for '{type(rid)}'")
     

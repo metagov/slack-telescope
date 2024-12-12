@@ -131,11 +131,21 @@ def get_linked_message(request_interaction):
     return PersistentRequestLink(request_interaction).message
         
 
-def retrieve_all_rids():
-    return [
+def retrieve_all_rids(filter_accepted=False):
+    rids = [
         RID.from_string(
             decode_b64(
                 fname.removesuffix(".json")
             )
         ) for fname in os.listdir(PERSISTENT_DIR)
     ]
+    
+    if not filter_accepted:
+        return rids
+    
+    filtered_rids = []
+    for rid in rids:
+        if PersistentMessage(rid).status in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
+            filtered_rids.append(rid)
+            
+    return filtered_rids

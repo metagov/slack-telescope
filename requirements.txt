@@ -1,4 +1,6 @@
 slack_bolt
 neo4j
 python-dotenv
+fastapi
+uvicorn
 rid-lib==3.0.0-beta.1

@@ -2,6 +2,7 @@ import time, json
 from slack_sdk.errors import SlackApiError
 from rid_lib.types import SlackMessage
 from app.core import slack_app, cache
+from app.config import TELESCOPE_EMOJI
 
 
 filename = "backfill.json"
@@ -45,11 +46,11 @@ for channel in channels:
     channel_id = channel["id"]
     
     if channel_id not in allowed_channels:
-        print("#" + channel["name"], "(skipping not allowed)")
+        print("#" + channel["name"], "(skipping disallowed channels)")
         continue
     
     if channel["is_archived"]:
-        print("#" + channel["name"], "(skipping archived)")
+        print("#" + channel["name"], "(skipping archived channels)")
         continue
     
     # join non member channels
@@ -62,7 +63,7 @@ for channel in channels:
     #     continue
     
     if (channel_id in records) and (records[channel_id]["completed"] == True):
-        print("#" + channel["name"], "(skipping completed)")
+        print("#" + channel["name"], "(skipping completed channels)")
         continue
     else:
         records[channel_id] = {
@@ -105,7 +106,7 @@ for channel in channels:
         # check for telescope reaction   
         found_telescope = False
         for reaction in message.get("reactions", []):
-            if reaction["name"] == "telescope":
+            if reaction["name"] == TELESCOPE_EMOJI:
                 found_telescope = True
                 break
         
@@ -118,8 +119,8 @@ for channel in channels:
             continue
         
         if found_telescope:
-            print("🔭", message_rid)
-            cache.write(message_rid, message)
+            print("✅", message_rid)
+            cache.bundle_and_write(message_rid, message)
             c_record["observed_messages"] += 1
             c_record["messages"].append(str(message_rid))
             write_records()
@@ -154,13 +155,13 @@ for channel in channels:
                 # check for telescope reaction   
                 found_telescope = False
                 for reaction in threaded_message.get("reactions", []):
-                    if reaction["name"] == "telescope":
+                    if reaction["name"] == TELESCOPE_EMOJI:
                         found_telescope = True
                         break
                 
                 if found_telescope:
-                    print("\t🔭", threaded_message_rid)
-                    cache.write(threaded_message_rid, threaded_message)
+                    print("\t✅", threaded_message_rid)
+                    cache.bundle_and_write(threaded_message_rid, threaded_message)
                     c_record["observed_messages"] += 1
                     c_record["messages"].append(str(threaded_message_rid))
                     write_records()

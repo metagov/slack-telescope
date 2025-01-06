@@ -1,8 +1,8 @@
 from slack_bolt import App
 from slack_bolt.adapter.fastapi import SlackRequestHandler
 from .config import *
-from .cache import CacheInterface, TransformationCacheInterface
 from .graph import GraphInterface
+from rid_lib.ext import Effector, Cache
 
 slack_app = App(
     token=SLACK_BOT_TOKEN,
@@ -12,8 +12,8 @@ slack_app = App(
 
 slack_handler = SlackRequestHandler(slack_app)
 
-cache = CacheInterface(CACHE_DIR)
-trans_cache = TransformationCacheInterface()
+cache = Cache(CACHE_DIR)
+effector = Effector(cache)
 
 if ENABLE_GRAPH:
     graph = GraphInterface(NEO4J_URI, NEO4J_AUTH, NEO4J_DB)

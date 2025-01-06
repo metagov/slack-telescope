@@ -1,10 +1,10 @@
 import csv, os, time, json
 from datetime import datetime, timezone
 from rid_lib.types import HTTPS, SlackMessage, SlackChannel, SlackWorkspace
-from .dereference import deref, transform
 from .persistent import PersistentMessage, retrieve_all_rids
 from .constants import MessageStatus
 from .utils import retraction_time_elapsed, encode_b64
+from .core import effector
 
 def format_timestamp(ts):
     return datetime.fromtimestamp(
@@ -17,11 +17,11 @@ def export_msg_to_json(msg: SlackMessage):
     if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
         return None
     
-    message_data = deref(msg)
-    channel_data = deref(SlackChannel(msg.team_id, msg.channel_id))
-    team_data = deref(SlackWorkspace(msg.team_id))
-    author_data = deref(p_msg.author)
-    tagger_data = deref(p_msg.tagger)
+    message_data = effector.dereference(msg).contents
+    channel_data = effector.dereference(SlackChannel(msg.team_id, msg.channel_id)).contents
+    team_data = effector.dereference(SlackWorkspace(msg.team_id)).contents
+    author_data = effector.dereference(p_msg.author).contents
+    tagger_data = effector.dereference(p_msg.tagger).contents
     
     message_in_thread = msg.ts != message_data.get("thread_ts", msg.ts)
     edited_timestamp = message_data.get("edited", {}).get("ts")
@@ -44,7 +44,7 @@ def export_msg_to_json(msg: SlackMessage):
         if v > 0
     ] if p_msg.emojis else []
     
-    msg_url = transform(msg, HTTPS)
+    msg_url = effector.transform(msg)
     
     msg_json = {
         "message_rid": str(msg),

@@ -1,11 +1,10 @@
 from rid_lib.types import SlackMessage, SlackChannel, HTTPS
 
-from app.core import slack_app
+from app.core import slack_app, effector
 from app.config import OBSERVATORY_CHANNEL_ID
 from app.persistent import PersistentMessage, PersistentUser, create_link
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.slack_interface.components import *
-from app.dereference import deref, transform
 from .consent import create_consent_interaction
 from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
@@ -22,14 +21,14 @@ def create_request_interaction(message, author, tagger):
     p_message.status = MessageStatus.TAGGED
     p_message.author = author
     p_message.tagger = tagger
-    p_message.permalink = transform(message, HTTPS)
+    p_message.permalink = effector.transform(message)
     
-    author_name = deref(author)["real_name"]
-    tagger_name = deref(tagger)["real_name"]
+    author_name = effector.dereference(author).contents["real_name"]
+    tagger_name = effector.dereference(tagger).contents["real_name"]
     
     
     channel = SlackChannel(message.team_id, message.channel_id)
-    channel_data = deref(channel)
+    channel_data = effector.dereference(channel).contents
     print(f"New message <{message}> tagged in #{channel_data['name']} "
         f"(author: {author_name}, "
         f"tagger: {tagger_name})"
@@ -65,7 +64,7 @@ def create_request_interaction(message, author, tagger):
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
-    author = deref(p_message.author)
+    author = effector.dereference(p_message.author).contents
             
     if action_id == ActionId.REQUEST:
         print(f"Message <{message}> requested")

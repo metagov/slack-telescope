@@ -1,14 +1,14 @@
 from rid_lib.types import SlackMessage
-from app.rid_types import Telescoped
-from app.core import slack_app, graph, effector, cache
+from app.core import slack_app, graph
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
 from app.slack_interface.components import *
 from app.utils import retraction_time_elapsed
 from app.config import ENABLE_GRAPH
-from app import messages
+from app import message_content
 from .refresh import refresh_request_interaction
 from .broadcast import delete_broadcast
+from .coordinator_interface import anonymize_and_coordinate, retract_and_coordinate
 
 
 def create_retract_interaction(message):
@@ -55,12 +55,12 @@ def handle_retract_interaction(action_id, message):
                 blocks=[
                     build_retract_msg_ref(message),
                     build_msg_context_row(message),
-                    build_basic_context(messages.retract_success)
+                    build_basic_context(message_content.retract_success)
                 ]
             )
         
             delete_broadcast(message)
-            cache.delete(Telescoped(message))
+            retract_and_coordinate(message)
         
         elif action_id == ActionId.ANONYMIZE:
             print(f"Message <{message}> anonymized")
@@ -72,10 +72,10 @@ def handle_retract_interaction(action_id, message):
                 blocks=[
                     build_retract_msg_ref(message),
                     build_msg_context_row(message),
-                    build_basic_context(messages.anonymize_success)
+                    build_basic_context(message_content.anonymize_success)
                 ]
             )
-            effector.dereference(Telescoped(message), refresh=True)
+            anonymize_and_coordinate(message)
         
         refresh_request_interaction(message)
                         
@@ -87,7 +87,7 @@ def handle_retract_interaction(action_id, message):
             blocks=[
                 build_retract_msg_ref(message),
                 build_msg_context_row(message),
-                build_basic_context(messages.retract_failure)
+                build_basic_context(message_content.retract_failure)
             ]
         )
         

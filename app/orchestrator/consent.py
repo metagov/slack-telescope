@@ -3,9 +3,11 @@ from app.core import slack_app
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.slack_interface.components import *
-from app import messages
+from app import message_content
 from .refresh import refresh_request_interaction
-from .shared_actions import accept_and_process
+from .retract import create_retract_interaction
+from .broadcast import create_broadcast
+from .coordinator_interface import accept_and_coordinate
 
 
 def create_consent_interaction(message):
@@ -19,7 +21,7 @@ def create_consent_interaction(message):
         channel=p_message.author.user_id,
         unfurl_links=False,
         blocks=[
-            build_basic_section(messages.consent_ui_welcome),
+            build_basic_section(message_content.consent_ui_welcome),
         ]
     )
     
@@ -65,12 +67,16 @@ def handle_consent_interaction(action_id, message):
         elif action_id == ActionId.OPT_IN:
             print(f"Message <{prev_message}> accepted")
             p_prev_message.status = MessageStatus.ACCEPTED
-            accept_and_process(message)
+            create_retract_interaction(prev_message)
+            create_broadcast(prev_message)
+            accept_and_coordinate(prev_message)
         
         elif action_id == ActionId.OPT_IN_ANON:
             print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
-            accept_and_process(message)
+            create_retract_interaction(prev_message)
+            create_broadcast(prev_message)
+            accept_and_coordinate(prev_message)
             
         refresh_request_interaction(prev_message)
     

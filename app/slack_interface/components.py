@@ -4,7 +4,7 @@ from app.constants import ActionId, BlockId, status_display
 from app.persistent import PersistentMessage
 from app.config import TEXT_PREVIEW_CHAR_LIMIT
 from app.core import team_id, effector
-from app import messages
+from app import message_content
 from .blocks import *
 
 
@@ -59,12 +59,12 @@ def build_request_msg_ref(message):
     
 def build_consent_msg_ref(message):
     return section_block(
-        text_obj(messages.consent_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
+        text_obj(message_content.consent_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
     )
 
 def build_retract_msg_ref(message):
     return section_block(
-        text_obj(messages.retract_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
+        text_obj(message_content.retract_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
     )
     
 def build_broadcast_msg_ref(message):    

@@ -1,8 +1,8 @@
-from fastapi import Query, Depends, Request
+from fastapi import Query, Depends, Request, HTTPException
 from rid_lib.core import RID
 from app import persistent
-from app.export import export_msg_to_json
-from app.core import slack_handler
+from app.core import effector, slack_handler
+from app.rid_types import Telescoped
 from .core import fastapi_app
 from .auth import verify_api_key
 
@@ -28,5 +28,17 @@ async def get_object(
     rid: str = Query(...), 
     api_key: str = Depends(verify_api_key)
 ):
-    rid_obj = RID.from_string(rid)
-    return export_msg_to_json(rid_obj)
+    rid: RID = RID.from_string(rid)
+    
+    print(rid)
+    
+    # if isinstance(rid, Telescoped):
+    bundle = effector.dereference(rid)
+                    
+    if bundle is not None:
+        return bundle.to_json()        
+
+    return HTTPException(
+        status_code=404,
+        detail="RID not found"
+    )

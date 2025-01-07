@@ -1,5 +1,6 @@
 from rid_lib.types import SlackMessage
-from app.core import slack_app
+from app.rid_types import Telescoped
+from app.core import slack_app, effector
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.slack_interface.components import *
@@ -68,12 +69,14 @@ def handle_consent_interaction(action_id, message):
             p_prev_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(prev_message)
             create_broadcast(prev_message)
+            effector.dereference(Telescoped(prev_message), refresh=True)
         
         elif action_id == ActionId.OPT_IN_ANON:
             print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(prev_message)
             create_broadcast(prev_message)
+            effector.dereference(Telescoped(prev_message), refresh=True)
             
         refresh_request_interaction(prev_message)
     

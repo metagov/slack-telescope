@@ -1,5 +1,6 @@
 from rid_lib.types import SlackMessage
-from app.core import slack_app, graph
+from app.rid_types import Telescoped
+from app.core import slack_app, graph, effector
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
 from app.slack_interface.components import *
@@ -63,7 +64,7 @@ def handle_retract_interaction(action_id, message):
         elif action_id == ActionId.ANONYMIZE:
             print(f"Message <{message}> anonymized")
             p_message.status = MessageStatus.ACCEPTED_ANON
-            
+
             slack_app.client.chat_update(
                 channel=p_message.retract_interaction.channel_id,
                 ts=p_message.retract_interaction.ts,
@@ -73,6 +74,7 @@ def handle_retract_interaction(action_id, message):
                     build_basic_context(messages.anonymize_success)
                 ]
             )
+            effector.dereference(Telescoped(message), refresh=True)
         
         refresh_request_interaction(message)
                         

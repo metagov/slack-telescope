@@ -1,6 +1,6 @@
 import csv, os, time, json
 from datetime import datetime, timezone
-from rid_lib.types import SlackMessage, SlackChannel, SlackWorkspace
+from rid_lib.types import SlackMessage
 from .persistent import PersistentMessage, retrieve_all_rids
 from .constants import MessageStatus
 from .utils import retraction_time_elapsed, encode_b64
@@ -9,7 +9,7 @@ from .core import effector
 def format_timestamp(ts):
     return datetime.fromtimestamp(
         float(ts), timezone.utc
-    ).strftime("%Y-%m-%dT%H:%M:%S")
+    ).isoformat()
 
 def export_msg_to_json(msg: SlackMessage):
     p_msg = PersistentMessage(msg)
@@ -18,8 +18,8 @@ def export_msg_to_json(msg: SlackMessage):
         return None
     
     message_data = effector.dereference(msg).contents
-    channel_data = effector.dereference(SlackChannel(msg.team_id, msg.channel_id)).contents
-    team_data = effector.dereference(SlackWorkspace(msg.team_id)).contents
+    channel_data = effector.dereference(msg.channel).contents
+    team_data = effector.dereference(msg.workspace).contents
     author_data = effector.dereference(p_msg.author).contents
     tagger_data = effector.dereference(p_msg.tagger).contents
     

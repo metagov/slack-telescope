@@ -1,6 +1,6 @@
-from rid_lib.types import SlackMessage, SlackChannel, HTTPS
-
+from rid_lib.types import SlackMessage, SlackChannel
 from app.core import slack_app, effector
+from app.rid_types import Telescoped
 from app.config import OBSERVATORY_CHANNEL_ID
 from app.persistent import PersistentMessage, PersistentUser, create_link
 from app.constants import MessageStatus, UserStatus, ActionId
@@ -89,6 +89,7 @@ def handle_request_interaction(action_id, message):
             p_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(message)
             create_broadcast(message)
+            effector.dereference(Telescoped(message), refresh=True)
         
         elif p_user.status == UserStatus.OPT_IN_ANON:
             print(f"User <{p_message.author}> status is opt in (anonymous)")
@@ -96,6 +97,7 @@ def handle_request_interaction(action_id, message):
             p_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(message)
             create_broadcast(message)
+            effector.dereference(Telescoped(message), refresh=True)
             
         elif p_user.status == UserStatus.OPT_OUT:
             print(f"User <{p_message.author}> status is opt out, rejecting message")

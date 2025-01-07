@@ -2,6 +2,7 @@ from app.core import slack_app
 from app.persistent import PersistentMessage
 from app.slack_interface.components import *
 
+
 def refresh_request_interaction(message):
     p_message = PersistentMessage(message)
     

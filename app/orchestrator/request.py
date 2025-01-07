@@ -1,14 +1,12 @@
 from rid_lib.types import SlackMessage, SlackChannel
 from app.core import slack_app, effector
-from app.rid_types import Telescoped
 from app.config import OBSERVATORY_CHANNEL_ID
 from app.persistent import PersistentMessage, PersistentUser, create_link
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.slack_interface.components import *
 from .consent import create_consent_interaction
 from .refresh import refresh_request_interaction
-from .retract import create_retract_interaction
-from .broadcast import create_broadcast
+from .shared_actions import accept_and_process
 
 
 def create_request_interaction(message, author, tagger):    
@@ -65,12 +63,11 @@ def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
     author = effector.dereference(p_message.author).contents
-            
+    
+    print(f"Handling request interaction action: '{action_id}' for message <{message}>")
     if action_id == ActionId.REQUEST:
-        print(f"Message <{message}> requested")
-        
+        print(f"User <{p_message.author}> status is: '{p_user.status}'")
         if p_user.status == UserStatus.UNSET:
-            print(f"User <{p_message.author}> status is unset")
             
             if author["is_bot"]:
                 p_user.status = UserStatus.OPT_IN
@@ -78,36 +75,27 @@ def handle_request_interaction(action_id, message):
                 create_consent_interaction(message)
             
         if p_user.status == UserStatus.PENDING:
-            print(f"User <{p_message.author}> status is pending")
             print(f"Queued message <{message}>")
             p_user.enqueue(message)
             p_message.status = MessageStatus.REQUESTED
             
         elif p_user.status == UserStatus.OPT_IN:
-            print(f"User <{p_message.author}> status is opt in")
             print(f"Message <{message}> accepted")
             p_message.status = MessageStatus.ACCEPTED
-            create_retract_interaction(message)
-            create_broadcast(message)
-            effector.dereference(Telescoped(message), refresh=True)
+            accept_and_process(message)
         
         elif p_user.status == UserStatus.OPT_IN_ANON:
-            print(f"User <{p_message.author}> status is opt in (anonymous)")
             print(f"Message <{message}> accepted (anonymous)")
             p_message.status = MessageStatus.ACCEPTED_ANON
-            create_retract_interaction(message)
-            create_broadcast(message)
-            effector.dereference(Telescoped(message), refresh=True)
+            accept_and_process(message)
             
         elif p_user.status == UserStatus.OPT_OUT:
-            print(f"User <{p_message.author}> status is opt out, rejecting message")
             print(f"Message <{message}> rejected")
             p_message.status = MessageStatus.REJECTED
         
         refresh_request_interaction(message)
     
     elif action_id == ActionId.IGNORE:
-        print(f"Message <{message}> ignored")
         p_message.status = MessageStatus.IGNORED
         
         slack_app.client.chat_update(

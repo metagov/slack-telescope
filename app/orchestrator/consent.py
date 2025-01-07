@@ -1,13 +1,11 @@
 from rid_lib.types import SlackMessage
-from app.rid_types import Telescoped
-from app.core import slack_app, effector
+from app.core import slack_app
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
 from app.slack_interface.components import *
 from app import messages
 from .refresh import refresh_request_interaction
-from .retract import create_retract_interaction
-from .broadcast import create_broadcast
+from .shared_actions import accept_and_process
 
 
 def create_consent_interaction(message):
@@ -59,7 +57,7 @@ def handle_consent_interaction(action_id, message):
     while persistent_user.msg_queue:
         prev_message = persistent_user.dequeue()
         p_prev_message = PersistentMessage(prev_message)
-                
+        
         if action_id == ActionId.OPT_OUT:
             print(f"Message <{prev_message}> rejected")
             p_prev_message.status = MessageStatus.REJECTED
@@ -67,16 +65,12 @@ def handle_consent_interaction(action_id, message):
         elif action_id == ActionId.OPT_IN:
             print(f"Message <{prev_message}> accepted")
             p_prev_message.status = MessageStatus.ACCEPTED
-            create_retract_interaction(prev_message)
-            create_broadcast(prev_message)
-            effector.dereference(Telescoped(prev_message), refresh=True)
+            accept_and_process(message)
         
         elif action_id == ActionId.OPT_IN_ANON:
             print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
-            create_retract_interaction(prev_message)
-            create_broadcast(prev_message)
-            effector.dereference(Telescoped(prev_message), refresh=True)
+            accept_and_process(message)
             
         refresh_request_interaction(prev_message)
     

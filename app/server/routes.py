@@ -20,7 +20,7 @@ async def verify_authorization(api_key: str = Depends(verify_api_key)):
 @fastapi_app.get("/rids")
 async def get_rids(api_key: str = Depends(verify_api_key)):
     return [
-        str(rid) for rid in persistent.retrieve_all_rids(filter_accepted=True)
+        str(Telescoped(rid)) for rid in persistent.retrieve_all_rids(filter_accepted=True)
     ]
     
 @fastapi_app.get("/object")

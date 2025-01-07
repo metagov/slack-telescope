@@ -1,6 +1,6 @@
 from rid_lib.types import SlackMessage
 from app.rid_types import Telescoped
-from app.core import slack_app, graph, effector
+from app.core import slack_app, graph, effector, cache
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
 from app.slack_interface.components import *
@@ -59,7 +59,8 @@ def handle_retract_interaction(action_id, message):
                 ]
             )
         
-            delete_broadcast(message)    
+            delete_broadcast(message)
+            cache.delete(Telescoped(message))
         
         elif action_id == ActionId.ANONYMIZE:
             print(f"Message <{message}> anonymized")

@@ -13,7 +13,7 @@ def format_timestamp(ts):
 
 def export_msg_to_json(msg: SlackMessage):
     p_msg = PersistentMessage(msg)
-    
+            
     if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
         return None
     

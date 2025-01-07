@@ -50,7 +50,7 @@ def deref_slack_workspace(rid: SlackWorkspace):
     
 @effector.register_dereference(Telescoped)
 def deref_telescoped(rid: Telescoped):
-    return export_msg_to_json(rid.slack_message)
+    return export_msg_to_json(rid.wrapped_rid)
 
 
  # TRANSFORM   

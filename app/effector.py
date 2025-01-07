@@ -1,8 +1,9 @@
-import json
 from rid_lib import RID
 from rid_lib.types import SlackMessage, SlackUser, SlackChannel, SlackWorkspace
 from slack_sdk.errors import SlackApiError
 from .core import slack_app, effector
+from .rid_types import Telescoped
+from .export import export_msg_to_json
 
 
 # DEREFERENCE
@@ -47,32 +48,17 @@ def deref_slack_workspace(rid: SlackWorkspace):
         team=rid.team_id
     )["team"]
     
-    
+@effector.register_dereference(Telescoped)
+def deref_telescoped(rid: Telescoped):
+    return export_msg_to_json(rid.slack_message)
+
+
  # TRANSFORM   
 
 @effector.register("transform", SlackMessage)
 def transform_slack_message_to_url(rid: SlackMessage):
-    transform_cache_path = "transform_cache.json"
-
-    try:
-        with open(transform_cache_path, "r") as f:
-            cached_data = json.load(f)
-    except FileNotFoundError:
-        cached_data = {}
-        
-    if str(rid) in cached_data:
-        url_str = cached_data[str(rid)]
-        return RID.from_string(url_str)
-    else:
-        url_str = slack_app.client.chat_getPermalink(
-            channel=rid.channel_id,
-            message_ts=rid.ts
-        )["permalink"]
-        url = RID.from_string(url_str)
-        
-        cached_data[str(rid)] = url_str
-        
-        with open(transform_cache_path, "w") as f:
-            json.dump(cached_data, f, indent=2)
-        
-        return url
+    url_str = slack_app.client.chat_getPermalink(
+        channel=rid.channel_id,
+        message_ts=rid.ts
+    )["permalink"]
+    return RID.from_string(url_str)

@@ -11,6 +11,12 @@ from .auth import verify_api_key
 async def slack_listener(request: Request):
     return await slack_handler.handle(request)
 
+@fastapi_app.get("/verify")
+async def verify_authorization(api_key: str = Depends(verify_api_key)):
+    return {
+        "success": True
+    }
+
 @fastapi_app.get("/rids")
 async def get_rids(api_key: str = Depends(verify_api_key)):
     return [

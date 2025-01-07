@@ -1,2 +1,2 @@
 from .slack_interface import actions, events, commands
-from . import effector
+from . import effector, rid_types

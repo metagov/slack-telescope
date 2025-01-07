@@ -1,6 +1,6 @@
 import csv, os, time, json
 from datetime import datetime, timezone
-from rid_lib.types import HTTPS, SlackMessage, SlackChannel, SlackWorkspace
+from rid_lib.types import SlackMessage, SlackChannel, SlackWorkspace
 from .persistent import PersistentMessage, retrieve_all_rids
 from .constants import MessageStatus
 from .utils import retraction_time_elapsed, encode_b64
@@ -44,8 +44,8 @@ def export_msg_to_json(msg: SlackMessage):
         if v > 0
     ] if p_msg.emojis else []
     
-    msg_url = effector.transform(msg)
-    
+    msg_url = str(p_msg.permalink)
+        
     msg_json = {
         "message_rid": str(msg),
         "team_id": msg.team_id,

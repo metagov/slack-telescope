@@ -8,7 +8,7 @@ from app.config import ENABLE_GRAPH
 from app import message_content
 from .refresh import refresh_request_interaction
 from .broadcast import delete_broadcast
-from .coordinator_interface import anonymize_and_coordinate, retract_and_coordinate
+from .coordinator_interface import report_update, report_forget
 
 
 def create_retract_interaction(message):
@@ -60,7 +60,7 @@ def handle_retract_interaction(action_id, message):
             )
         
             delete_broadcast(message)
-            retract_and_coordinate(message)
+            report_forget(message)
         
         elif action_id == ActionId.ANONYMIZE:
             print(f"Message <{message}> anonymized")
@@ -75,7 +75,7 @@ def handle_retract_interaction(action_id, message):
                     build_basic_context(message_content.anonymize_success)
                 ]
             )
-            anonymize_and_coordinate(message)
+            report_update(message)
         
         refresh_request_interaction(message)
                         

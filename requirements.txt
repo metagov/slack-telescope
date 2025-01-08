@@ -3,4 +3,4 @@ neo4j
 python-dotenv
 fastapi
 uvicorn
-git+https://github.com/BlockScience/rid-lib@dev
+rid-lib>=3.1.1

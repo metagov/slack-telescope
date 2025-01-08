@@ -7,7 +7,7 @@ from app import message_content
 from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
-from .coordinator_interface import accept_and_coordinate
+from .coordinator_interface import report_new
 
 
 def create_consent_interaction(message):
@@ -69,14 +69,14 @@ def handle_consent_interaction(action_id, message):
             p_prev_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(prev_message)
             create_broadcast(prev_message)
-            accept_and_coordinate(prev_message)
+            report_new(prev_message)
         
         elif action_id == ActionId.OPT_IN_ANON:
             print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(prev_message)
             create_broadcast(prev_message)
-            accept_and_coordinate(prev_message)
+            report_new(prev_message)
             
         refresh_request_interaction(prev_message)
     

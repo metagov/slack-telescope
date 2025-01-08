@@ -8,7 +8,7 @@ from .consent import create_consent_interaction
 from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
-from .coordinator_interface import accept_and_coordinate
+from .coordinator_interface import report_new
 
 
 def create_request_interaction(message, author, tagger):    
@@ -86,14 +86,14 @@ def handle_request_interaction(action_id, message):
             p_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(message)
             create_broadcast(message)
-            accept_and_coordinate(message)
+            report_new(message)
         
         elif p_user.status == UserStatus.OPT_IN_ANON:
             print(f"Message <{message}> accepted (anonymous)")
             p_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(message)
             create_broadcast(message)
-            accept_and_coordinate(message)
+            report_new(message)
             
         elif p_user.status == UserStatus.OPT_OUT:
             print(f"Message <{message}> rejected")

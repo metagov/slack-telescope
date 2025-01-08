@@ -5,7 +5,7 @@ from app.slack_interface.components import *
 from app import coordinator
 
 
-def accept_and_coordinate(message):
+def report_new(message):
     t_message = Telescoped(message)
     bundle = effector.dereference(t_message, refresh=True)
     
@@ -17,12 +17,10 @@ def accept_and_coordinate(message):
         )
     )
 
-def anonymize_and_coordinate(message):
+def report_update(message):
     t_message = Telescoped(message)
     bundle = effector.dereference(t_message, refresh=True)
-    
-    print(bundle)
-    
+        
     coordinator.broadcast_event(
         Event(
             t_message,
@@ -31,7 +29,7 @@ def anonymize_and_coordinate(message):
         )
     )
 
-def retract_and_coordinate(message):
+def report_forget(message):
     t_message = Telescoped(message)
     cache.delete(t_message)
         

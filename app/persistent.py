@@ -111,8 +111,10 @@ class PersistentMessage(PersistentObject):
     def remove_emoji(self, emoji_str: str):
         emojis = self._data.setdefault("emojis", {})
         emojis[emoji_str] = max(emojis.get(emoji_str, 0) - 1, 0)
+        if emojis[emoji_str] == 0:
+            del emojis[emoji_str]
         self._write()
-        return emojis[emoji_str]
+        return emojis.get(emoji_str, 0)
         
 class PersistentRequestLink(PersistentObject):
     _instances = {}

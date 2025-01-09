@@ -1,9 +1,8 @@
 from fastapi import Query, Depends, Request, HTTPException
 from rid_lib.core import RID
 from rid_lib.ext.utils import json_serialize
-from app import sensor_interface
-from app.core import effector, slack_handler
-from app.rid_types import Telescoped
+from app import sensor_interface, coordinator_interface
+from app.core import slack_handler
 from .core import fastapi_app
 from .auth import verify_api_key
 
@@ -38,4 +37,22 @@ async def get_object(
     return HTTPException(
         status_code=404,
         detail="RID not found"
+    )
+
+@fastapi_app.post("/events/subscribe")
+async def subscribe_to_events(api_key: str = Depends(verify_api_key)):
+    return coordinator_interface.register_subscriber()
+    
+@fastapi_app.get("/events/poll/{subscriber_id}")
+async def poll_events(
+    subscriber_id: str,
+    api_key: str = Depends(verify_api_key),
+):
+    events = coordinator_interface.poll_events(subscriber_id)
+    if events is not None:
+        return json_serialize(events)
+    
+    return HTTPException(
+        status_code=404,
+        detail="Subscriber not found"
     )

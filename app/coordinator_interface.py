@@ -1,19 +1,22 @@
-import json
+import secrets
 from rid_lib.ext import Event, Cache, EventType, CacheBundle
-from app.persistent import retrieve_all_rids
-from app.rid_types import Telescoped
-from app.core import effector
 from app import sensor_interface
 
 coordinator_cache = Cache("coordinator_cache")
 
+subscribers: dict[str, list[Event]] = {}
+
 def broadcast_event(event: Event):
-    print(f"broadcasting {event.event_type} event:\n{json.dumps(event.to_json(), indent=2)}")
+    print(f"Broadcasting event to coordinator:", event)
+    
+    for sub_id in subscribers.keys():
+        subscribers[sub_id].append(event)
+        
+    print(subscribers)
     
     if event.event_type in (EventType.NEW, EventType.UPDATE):
         coordinator_cache.write(
-            event.rid, CacheBundle(event.manifest)
-        )
+            event.rid, CacheBundle(event.manifest))
     elif event.event_type == EventType.FORGET:
         coordinator_cache.delete(event.rid)
         
@@ -24,7 +27,15 @@ def refresh():
         bundle = sensor_interface.get_object(rid)
         if bundle:
             coordinator_cache.write(rid, bundle)
-    
-# if not coordinator_cache.read_all_rids():
-#     print("filling empty coordinator cache")
-#     refresh()
+            
+def register_subscriber():
+    sub_id = secrets.token_urlsafe(16)
+    subscribers[sub_id] = []
+    return sub_id
+
+def poll_events(sub_id: str):
+    if sub_id not in subscribers:
+        return
+    events = subscribers[sub_id]
+    subscribers[sub_id] = []
+    return events

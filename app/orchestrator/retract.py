@@ -1,36 +1,30 @@
-from rid_lib.types import SlackMessage
-from app.core import slack_app, graph
+from app.core import graph
+from app.config import GRAPH_ENABLED
 from app.persistent import PersistentMessage
 from app.constants import MessageStatus
-from app.slack_interface.components import *
+from app.slack_interface.functions import create_slack_msg, update_slack_msg
+from app.slack_interface.composed import (
+    retract_interaction_blocks, 
+    end_retract_interaction_blocks, 
+    end_request_interaction_blocks
+)
 from app.utils import retraction_time_elapsed
-from app.config import ENABLE_GRAPH
-from app import messages
-from .refresh import refresh_request_interaction
+from app.constants import ActionId
+from app import message_content
 from .broadcast import delete_broadcast
+from .message_handlers import handle_message_retract, handle_message_anonymize
 
 
 def create_retract_interaction(message):
     p_message = PersistentMessage(message)
     
-    resp = slack_app.client.chat_postMessage(
+    p_message.retract_interaction = create_slack_msg(
+        p_message.author,
         text="Your message has been observed",
-        unfurl_links=False,
-        channel=p_message.author.user_id,
-        blocks=[
-            build_retract_msg_ref(message),
-            build_msg_context_row(message),
-            build_retract_interaction_row(message)
-        ]
-    )
-    
-    p_message.retract_interaction = SlackMessage(
-        resp["message"]["team"],
-        resp["channel"],
-        resp["message"]["ts"]
+        blocks=retract_interaction_blocks(message)
     )
                     
-    if ENABLE_GRAPH:
+    if GRAPH_ENABLED:
         graph.create(p_message.author)
         graph.create(p_message.tagger)
         graph.create(message)
@@ -45,46 +39,41 @@ def handle_retract_interaction(action_id, message):
             print(f"Message <{message}> retracted")
             p_message.status = MessageStatus.RETRACTED
         
-            if ENABLE_GRAPH:
+            if GRAPH_ENABLED:
                 graph.delete(message)
-                
-            slack_app.client.chat_update(
-                channel=p_message.retract_interaction.channel_id,
-                ts=p_message.retract_interaction.ts,
-                blocks=[
-                    build_retract_msg_ref(message),
-                    build_msg_context_row(message),
-                    build_basic_context(messages.retract_success)
-                ]
+            
+            update_slack_msg(
+                p_message.retract_interaction, 
+                end_retract_interaction_blocks(
+                    message, message_content.retract_success
+                )
             )
-        
-            delete_broadcast(message)    
+            
+            delete_broadcast(message)
+            handle_message_retract(message)
         
         elif action_id == ActionId.ANONYMIZE:
             print(f"Message <{message}> anonymized")
             p_message.status = MessageStatus.ACCEPTED_ANON
-            
-            slack_app.client.chat_update(
-                channel=p_message.retract_interaction.channel_id,
-                ts=p_message.retract_interaction.ts,
-                blocks=[
-                    build_retract_msg_ref(message),
-                    build_msg_context_row(message),
-                    build_basic_context(messages.anonymize_success)
-                ]
+
+            update_slack_msg(
+                p_message.retract_interaction, 
+                end_retract_interaction_blocks(
+                    message, message_content.anonymize_success
+                )
             )
+            
+            handle_message_anonymize(message)
         
-        refresh_request_interaction(message)
+        update_slack_msg(p_message.request_interaction, end_request_interaction_blocks(message))
                         
     else:
         print(f"Message <{message}> could not be retracted")
-        slack_app.client.chat_update(
-            channel=p_message.retract_interaction.channel_id,
-            ts=p_message.retract_interaction.ts,
-            blocks=[
-                build_retract_msg_ref(message),
-                build_msg_context_row(message),
-                build_basic_context(messages.retract_failure)
-            ]
+        update_slack_msg(
+            p_message.retract_interaction, 
+            end_retract_interaction_blocks(
+                message, message_content.retract_failure
+            )
         )
+
         

@@ -16,7 +16,7 @@ class MessageStatus:
     REJECTED = "rejected"
     RETRACTED = "retracted"
     
-status_display = {
+request_status_display = {
     MessageStatus.TAGGED: "Tagged :label:",
     MessageStatus.REQUESTED: "Requested :hourglass_flowing_sand:",
     MessageStatus.IGNORED: "Ignored :wave:",

@@ -1,15 +1,16 @@
-from rid_lib.types import SlackMessage, SlackChannel, HTTPS
-
-from app.core import slack_app
-from app.config import OBSERVATORY_CHANNEL_ID
+from app.core import effector, observatory_channel
 from app.persistent import PersistentMessage, PersistentUser, create_link
 from app.constants import MessageStatus, UserStatus, ActionId
-from app.slack_interface.components import *
-from app.dereference import deref, transform
+from app.slack_interface.functions import create_slack_msg, update_slack_msg
+from app.slack_interface.composed import (
+    request_interaction_blocks, 
+    alt_request_interaction_blocks,
+    end_request_interaction_blocks
+)
 from .consent import create_consent_interaction
-from .refresh import refresh_request_interaction
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
+from .message_handlers import handle_message_accept
 
 
 def create_request_interaction(message, author, tagger):    
@@ -22,42 +23,26 @@ def create_request_interaction(message, author, tagger):
     p_message.status = MessageStatus.TAGGED
     p_message.author = author
     p_message.tagger = tagger
-    p_message.permalink = transform(message, HTTPS)
+    p_message.permalink = effector.transform(message)
     
-    author_name = deref(author)["real_name"]
-    tagger_name = deref(tagger)["real_name"]
+    author_name = effector.dereference(author).contents["real_name"]
+    tagger_name = effector.dereference(tagger).contents["real_name"]
     
-    
-    channel = SlackChannel(message.team_id, message.channel_id)
-    channel_data = deref(channel)
+    channel_data = effector.dereference(message.channel).contents
     print(f"New message <{message}> tagged in #{channel_data['name']} "
-        f"(author: {author_name}, "
-        f"tagger: {tagger_name})"
+        f"(author: {author_name}, tagger: {tagger_name})"
     )
     
     if channel_data["is_private"] == True:
         p_message.status = MessageStatus.UNREACHABLE
-        slack_app.client.chat_postMessage(
-            channel=OBSERVATORY_CHANNEL_ID,
-            text=f"The <{p_message.permalink}|message you just tagged> is located in a private channel and cannot be observed.")
+        
+        create_slack_msg(observatory_channel, text=f"The <{p_message.permalink}|message you just tagged> is located in a private channel and cannot be observed.")
         print("Message was unreachable")
         return
     
-    resp = slack_app.client.chat_postMessage(
-        channel=OBSERVATORY_CHANNEL_ID,
-        unfurl_links=False,
-        blocks=[
-            build_request_msg_ref(message),
-            build_msg_context_row(message),
-            build_request_msg_status(message),
-            build_request_interaction_row(message)
-        ]
-    )
-    
-    p_message.request_interaction = SlackMessage(
-        resp["message"]["team"],
-        resp["channel"],
-        resp["message"]["ts"]
+    p_message.request_interaction = create_slack_msg(
+        observatory_channel,
+        request_interaction_blocks(message)
     )
     
     create_link(p_message.request_interaction, message)
@@ -65,72 +50,61 @@ def create_request_interaction(message, author, tagger):
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
-    author = deref(p_message.author)
-            
+    author = effector.dereference(p_message.author).contents
+    
+    print(f"Handling request interaction action: '{action_id}' for message <{message}>")
     if action_id == ActionId.REQUEST:
-        print(f"Message <{message}> requested")
-        
+        print(f"User <{p_message.author}> status is: '{p_user.status}'")
         if p_user.status == UserStatus.UNSET:
-            print(f"User <{p_message.author}> status is unset")
             
+            # bots can't consent, opt in by default
             if author["is_bot"]:
                 p_user.status = UserStatus.OPT_IN
             else:
                 create_consent_interaction(message)
             
         if p_user.status == UserStatus.PENDING:
-            print(f"User <{p_message.author}> status is pending")
             print(f"Queued message <{message}>")
             p_user.enqueue(message)
             p_message.status = MessageStatus.REQUESTED
             
         elif p_user.status == UserStatus.OPT_IN:
-            print(f"User <{p_message.author}> status is opt in")
             print(f"Message <{message}> accepted")
             p_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(message)
             create_broadcast(message)
-        
+            handle_message_accept(message)
+            
         elif p_user.status == UserStatus.OPT_IN_ANON:
-            print(f"User <{p_message.author}> status is opt in (anonymous)")
             print(f"Message <{message}> accepted (anonymous)")
             p_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(message)
             create_broadcast(message)
-            
+            handle_message_accept(message)
+             
         elif p_user.status == UserStatus.OPT_OUT:
-            print(f"User <{p_message.author}> status is opt out, rejecting message")
             print(f"Message <{message}> rejected")
             p_message.status = MessageStatus.REJECTED
         
-        refresh_request_interaction(message)
+        update_slack_msg(
+            p_message.request_interaction, 
+            end_request_interaction_blocks(message)
+        )
     
     elif action_id == ActionId.IGNORE:
         print(f"Message <{message}> ignored")
         p_message.status = MessageStatus.IGNORED
         
-        slack_app.client.chat_update(
-            channel=p_message.request_interaction.channel_id,
-            ts=p_message.request_interaction.ts,
-            blocks=[
-                build_request_msg_ref(message),
-                build_msg_context_row(message),
-                build_request_msg_status(message),
-                build_alt_request_interaction_row(message)
-            ]
+        update_slack_msg(
+            p_message.request_interaction,
+            alt_request_interaction_blocks(message)
         )
             
     elif action_id == ActionId.UNDO_IGNORE:
         print(f"Message <{message}> unignored")
         p_message.status = MessageStatus.TAGGED
         
-        slack_app.client.chat_update(
-            channel=p_message.request_interaction.channel_id,
-            ts=p_message.request_interaction.ts,
-            blocks=[
-                build_request_msg_ref(message),
-                build_msg_context_row(message),
-                build_request_msg_status(message),
-                build_request_interaction_row(message)
-            ]
+        update_slack_msg(
+            p_message.request_interaction,
+            request_interaction_blocks(message)
         )

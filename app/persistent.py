@@ -1,5 +1,6 @@
 import json, os
 from rid_lib.core import RID
+from rid_lib.types import SlackMessage, SlackUser, HTTPS
 from .config import PERSISTENT_DIR
 from .constants import UserStatus, MessageStatus
 from .utils import encode_b64, decode_b64
@@ -81,18 +82,18 @@ class PersistentUser(PersistentObject):
 class PersistentMessage(PersistentObject):
     _instances = {}
     
-    status = persistent_prop("status")
-    author = persistent_prop("author", rid=True)
-    tagger = persistent_prop("tagger", rid=True)
+    status: SlackUser = persistent_prop("status")
+    author: SlackUser = persistent_prop("author", rid=True)
+    tagger: SlackUser = persistent_prop("tagger", rid=True)
     
-    request_interaction = persistent_prop("request_interaction", rid=True)
-    consent_interaction = persistent_prop("consent_interaction", rid=True)
-    retract_interaction = persistent_prop("retract_interaction", rid=True)
-    broadcast_interaction = persistent_prop("broadcast_interaction", rid=True)
-    permalink = persistent_prop("permalink", rid=True)
+    request_interaction: SlackMessage = persistent_prop("request_interaction", rid=True)
+    consent_interaction: SlackMessage = persistent_prop("consent_interaction", rid=True)
+    retract_interaction: SlackMessage = persistent_prop("retract_interaction", rid=True)
+    broadcast_interaction: SlackMessage = persistent_prop("broadcast_interaction", rid=True)
+    permalink: HTTPS = persistent_prop("permalink", rid=True)
     
-    comments = persistent_prop("comments")
-    emojis = persistent_prop("emojis")
+    comments: list[str] = persistent_prop("comments")
+    emojis: list[str] = persistent_prop("emojis")
     
     def __init__(self, rid: RID):
         super().__init__(rid, {

@@ -1,8 +1,9 @@
 from app.core import slack_app
+from app.config import DEBUG
 from app.export import export_msgs_to_csv
 
 
-@slack_app.command("/export_csv")
+@slack_app.command("/export_csv(dev)" if DEBUG else "/export_csv")
 def handle_export_command(ack, command, say):
     ack()
     

@@ -1,5 +1,5 @@
 from rid_lib.types import SlackMessage, SlackUser
-from app.core import slack_app, bot_user_id
+from app.core import slack_app, bot_user
 from app.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
 from app import orchestrator
 from app.persistent import PersistentMessage, get_linked_message
@@ -18,7 +18,7 @@ def handle_reaction_added(body, event):
     )
     emoji_str = event["reaction"]
     
-    if event["item_user"] == bot_user_id:
+    if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
         if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
             return
@@ -53,7 +53,7 @@ def handle_reaction_removed(body, event):
     )
     emoji_str = event["reaction"]
 
-    if event["item_user"] == bot_user_id:
+    if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
         if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
             return
@@ -78,7 +78,7 @@ def handle_reaction_removed(body, event):
 })
 def handle_message_reply(event):
     # only handle replies to bot message
-    if event.get("parent_user_id") != bot_user_id:
+    if event.get("parent_user_id") != bot_user.user_id:
         return
     
     request_interaction = SlackMessage(
@@ -86,7 +86,8 @@ def handle_message_reply(event):
         event["channel"],
         event["thread_ts"]
     )
-        
+    
+    # TODO: check that there is a linked message, handle case of users responding to non request interaction messages
     p_message = PersistentMessage(get_linked_message(request_interaction))
     p_message.add_comment(event["text"])
     

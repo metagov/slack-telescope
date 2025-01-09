@@ -17,7 +17,7 @@ else:
 
 TEXT_PREVIEW_CHAR_LIMIT = 500
 
-ENABLE_GRAPH = False
+GRAPH_ENABLED = False
 
 CACHE_DIR = "cache"
 PERSISTENT_DIR = "persistent"

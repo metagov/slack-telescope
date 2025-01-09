@@ -1,6 +1,6 @@
 import re
 from rid_lib.types import SlackUser
-from app.constants import ActionId, BlockId, status_display
+from app.constants import ActionId, BlockId, request_status_display
 from app.persistent import PersistentMessage
 from app.config import TEXT_PREVIEW_CHAR_LIMIT
 from app.core import team_id, effector
@@ -76,7 +76,7 @@ def build_request_msg_status(message):
     message_status = PersistentMessage(message).status
         
     return context_block([
-        text_obj(f"Status: {status_display[message_status]}", type="mrkdwn")
+        text_obj(f"Status: {request_status_display[message_status]}", type="mrkdwn")
     ])
     
 def build_basic_section(text):
@@ -126,4 +126,3 @@ def build_retract_interaction_row(rid):
             button_block(ActionId.ANONYMIZE, text_obj("Anonymize"), str(rid))
         ]
     )
-    

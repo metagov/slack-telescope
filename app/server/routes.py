@@ -1,6 +1,7 @@
 from fastapi import Query, Depends, Request, HTTPException
 from rid_lib.core import RID
-from app import persistent
+from rid_lib.ext.utils import json_serialize
+from app import sensor_interface
 from app.core import effector, slack_handler
 from app.rid_types import Telescoped
 from .core import fastapi_app
@@ -19,9 +20,9 @@ async def verify_authorization(api_key: str = Depends(verify_api_key)):
 
 @fastapi_app.get("/rids")
 async def get_rids(api_key: str = Depends(verify_api_key)):
-    return [
-        str(Telescoped(rid)) for rid in persistent.retrieve_all_rids(filter_accepted=True)
-    ]
+    return json_serialize(
+        sensor_interface.get_rids()
+    )
     
 @fastapi_app.get("/object")
 async def get_object(
@@ -30,11 +31,7 @@ async def get_object(
 ):
     rid: RID = RID.from_string(rid)
     
-    print(rid)
-    
-    # if isinstance(rid, Telescoped):
-    bundle = effector.dereference(rid)
-                    
+    bundle = sensor_interface.get_object(rid)
     if bundle is not None:
         return bundle.to_json()        
 

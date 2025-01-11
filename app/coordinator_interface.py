@@ -11,9 +11,7 @@ def broadcast_event(event: Event):
     
     for sub_id in subscribers.keys():
         subscribers[sub_id].append(event)
-        
-    print(subscribers)
-    
+            
     if event.event_type in (EventType.NEW, EventType.UPDATE):
         coordinator_cache.write(
             event.rid, CacheBundle(event.manifest))

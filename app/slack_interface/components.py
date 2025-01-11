@@ -10,7 +10,7 @@ from .blocks import *
 
 def replace_match(match):
     try:
-        user_data = effector.dereference(SlackUser(team_id, match.group(1))).contents
+        user_data = effector.deref(SlackUser(team_id, match.group(1))).contents
         if not user_data or type(user_data) != dict:
             return match.group(0)
         else:
@@ -19,7 +19,7 @@ def replace_match(match):
         return match.group(0)
 
 def format_text(message):
-    text = effector.dereference(message).contents["text"]
+    text = effector.deref(message).contents["text"]
             
     if len(text) > TEXT_PREVIEW_CHAR_LIMIT:
         text = text[:TEXT_PREVIEW_CHAR_LIMIT] + "..."
@@ -39,7 +39,7 @@ def format_text(message):
 
 def build_msg_context_row(message):
     p_message = PersistentMessage(message)
-    author_name = effector.dereference(p_message.author).contents["real_name"]
+    author_name = effector.deref(p_message.author).contents["real_name"]
     
     timestamp = message.ts.split(".")[0]
         
@@ -51,7 +51,7 @@ def build_msg_context_row(message):
     ])
 
 def build_request_msg_ref(message): 
-    tagger_name = effector.dereference(PersistentMessage(message).tagger).contents["real_name"]
+    tagger_name = effector.deref(PersistentMessage(message).tagger).contents["real_name"]
        
     return section_block(
         text_obj(f"Tagged by *{tagger_name}*\n{format_text(message)}", type="mrkdwn")

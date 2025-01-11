@@ -58,11 +58,11 @@ def deref_telescoped(rid: Telescoped):
     if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
         return None
     
-    message_data = effector.dereference(msg).contents
-    channel_data = effector.dereference(msg.channel).contents
-    team_data = effector.dereference(msg.workspace).contents
-    author_data = effector.dereference(p_msg.author).contents
-    tagger_data = effector.dereference(p_msg.tagger).contents
+    message_data = effector.deref(msg).contents
+    channel_data = effector.deref(msg.channel).contents
+    team_data = effector.deref(msg.workspace).contents
+    author_data = effector.deref(p_msg.author).contents
+    tagger_data = effector.deref(p_msg.tagger).contents
     
     message_in_thread = msg.ts != message_data.get("thread_ts", msg.ts)
     edited_timestamp = message_data.get("edited", {}).get("ts")

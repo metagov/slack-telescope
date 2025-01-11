@@ -12,5 +12,5 @@ def get_rids():
     
 def get_object(rid: RID):
     if isinstance(rid, Telescoped):
-        return effector.dereference(rid)
+        return effector.deref(rid)
         

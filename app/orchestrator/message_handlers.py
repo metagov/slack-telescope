@@ -7,7 +7,7 @@ from app import coordinator_interface
 
 def handle_message_accept(message):
     t_message = Telescoped(message)
-    bundle = effector.dereference(t_message, refresh=True)
+    bundle = effector.deref(t_message, refresh=True)
     
     coordinator_interface.broadcast_event(
         Event(
@@ -30,7 +30,7 @@ def handle_message_retract(message):
 
 def handle_message_anonymize(message):
     t_message = Telescoped(message)
-    bundle = effector.dereference(t_message, refresh=True)
+    bundle = effector.deref(t_message, refresh=True)
         
     coordinator_interface.broadcast_event(
         Event(

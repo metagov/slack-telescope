@@ -18,7 +18,7 @@ with open("backfill.json", "r") as f:
         
 messages.sort(key=lambda x: x.ts)
 for i, message in enumerate(messages):
-    message_data = effector.dereference(message).contents
+    message_data = effector.deref(message).contents
     
     print(message_data)
     

@@ -25,10 +25,10 @@ def create_request_interaction(message, author, tagger):
     p_message.tagger = tagger
     p_message.permalink = effector.transform(message)
     
-    author_name = effector.dereference(author).contents["real_name"]
-    tagger_name = effector.dereference(tagger).contents["real_name"]
+    author_name = effector.deref(author).contents["real_name"]
+    tagger_name = effector.deref(tagger).contents["real_name"]
     
-    channel_data = effector.dereference(message.channel).contents
+    channel_data = effector.deref(message.channel).contents
     print(f"New message <{message}> tagged in #{channel_data['name']} "
         f"(author: {author_name}, tagger: {tagger_name})"
     )
@@ -50,7 +50,7 @@ def create_request_interaction(message, author, tagger):
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
-    author = effector.dereference(p_message.author).contents
+    author = effector.deref(p_message.author).contents
     
     print(f"Handling request interaction action: '{action_id}' for message <{message}>")
     if action_id == ActionId.REQUEST:

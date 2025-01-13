@@ -5,7 +5,7 @@ from app.slack_interface.components import *
 from app import coordinator_interface
 
 
-def handle_message_accept(message):
+def handle_new_message(message):
     t_message = Telescoped(message)
     bundle = effector.deref(t_message, refresh=True)
     
@@ -17,18 +17,7 @@ def handle_message_accept(message):
         )
     )
 
-def handle_message_retract(message):    
-    t_message = Telescoped(message)
-    cache.delete(t_message)
-        
-    coordinator_interface.broadcast_event(
-        Event(
-            t_message,
-            EventType.FORGET
-        )
-    )
-
-def handle_message_anonymize(message):
+def handle_update_message(message):
     t_message = Telescoped(message)
     bundle = effector.deref(t_message, refresh=True)
         
@@ -37,5 +26,16 @@ def handle_message_anonymize(message):
             t_message,
             EventType.UPDATE,
             bundle.manifest
+        )
+    )
+
+def handle_forget_message(message):    
+    t_message = Telescoped(message)
+    cache.delete(t_message)
+        
+    coordinator_interface.broadcast_event(
+        Event(
+            t_message,
+            EventType.FORGET
         )
     )

@@ -12,7 +12,7 @@ from app.slack_interface.composed import (
 )
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
-from .message_handlers import handle_message_accept
+from .message_handlers import handle_new_message
 
 
 def create_consent_interaction(message):
@@ -57,14 +57,14 @@ def handle_consent_interaction(action_id, message):
             p_prev_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(message)
             create_broadcast(message)
-            handle_message_accept(prev_message)
+            handle_new_message(prev_message)
         
         elif action_id == ActionId.OPT_IN_ANON:
             print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(message)
             create_broadcast(message)
-            handle_message_accept(prev_message)
+            handle_new_message(prev_message)
             
         update_slack_msg(p_message.request_interaction, end_request_interaction_blocks(message))
     

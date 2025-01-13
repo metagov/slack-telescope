@@ -4,6 +4,7 @@ from app.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
 from app import orchestrator
 from app.persistent import PersistentMessage, get_linked_message
 from app.constants import MessageStatus
+from app.orchestrator.message_handlers import handle_update_message
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(body, event):        
@@ -34,6 +35,8 @@ def handle_reaction_added(body, event):
                 timestamp=tagged_msg.ts,
                 name=emoji_str
             )
+            
+            handle_update_message(p_msg.rid)
     
     elif emoji_str == TELESCOPE_EMOJI:
         tagger = SlackUser(team_id, event["user"])
@@ -71,6 +74,8 @@ def handle_reaction_removed(body, event):
                     name=emoji_str
                 )
             
+            handle_update_message(p_msg.rid)
+            
 
 @slack_app.event({
     "type": "message",
@@ -96,4 +101,6 @@ def handle_message_reply(event):
         timestamp=event["ts"],
         name="thumbsup"
     )
+    
+    handle_update_message(p_message.rid)
     

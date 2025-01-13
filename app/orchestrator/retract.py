@@ -12,7 +12,7 @@ from app.utils import retraction_time_elapsed
 from app.constants import ActionId
 from app import message_content
 from .broadcast import delete_broadcast
-from .message_handlers import handle_message_retract, handle_message_anonymize
+from .message_handlers import handle_forget_message, handle_update_message
 
 
 def create_retract_interaction(message):
@@ -50,7 +50,7 @@ def handle_retract_interaction(action_id, message):
             )
             
             delete_broadcast(message)
-            handle_message_retract(message)
+            handle_forget_message(message)
         
         elif action_id == ActionId.ANONYMIZE:
             print(f"Message <{message}> anonymized")
@@ -63,7 +63,7 @@ def handle_retract_interaction(action_id, message):
                 )
             )
             
-            handle_message_anonymize(message)
+            handle_update_message(message)
         
         update_slack_msg(p_message.request_interaction, end_request_interaction_blocks(message))
                         

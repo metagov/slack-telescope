@@ -135,6 +135,9 @@ def get_linked_message(request_interaction):
         
 
 def retrieve_all_rids(filter_accepted=False):
+    if not os.path.exists(PERSISTENT_DIR):
+        return []
+    
     rids = [
         RID.from_string(
             decode_b64(

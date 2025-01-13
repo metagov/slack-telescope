@@ -1,4 +1,4 @@
-from fastapi import Query, Depends, Request, HTTPException
+from fastapi import Query, Depends, Request, HTTPException, status
 from rid_lib.core import RID
 from rid_lib.ext.utils import json_serialize
 from app import sensor_interface, coordinator_interface
@@ -34,14 +34,17 @@ async def get_object(
     if bundle is not None:
         return bundle.to_json()        
 
-    return HTTPException(
+    raise HTTPException(
         status_code=404,
         detail="RID not found"
     )
 
 @fastapi_app.post("/events/subscribe")
 async def subscribe_to_events(api_key: str = Depends(verify_api_key)):
-    return coordinator_interface.register_subscriber()
+    subscriber_id = coordinator_interface.register_subscriber()
+    return {
+        "subscriber_id": subscriber_id
+    }
     
 @fastapi_app.get("/events/poll/{subscriber_id}")
 async def poll_events(
@@ -52,7 +55,7 @@ async def poll_events(
     if events is not None:
         return json_serialize(events)
     
-    return HTTPException(
-        status_code=404,
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
         detail="Subscriber not found"
     )

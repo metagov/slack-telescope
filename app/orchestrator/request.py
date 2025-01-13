@@ -23,7 +23,7 @@ def create_request_interaction(message, author, tagger):
     p_message.status = MessageStatus.TAGGED
     p_message.author = author
     p_message.tagger = tagger
-    p_message.permalink = effector.transform(message)
+    p_message.permalink = effector.execute("transform", message)
     
     author_name = effector.deref(author).contents["real_name"]
     tagger_name = effector.deref(tagger).contents["real_name"]

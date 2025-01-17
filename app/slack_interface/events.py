@@ -24,8 +24,11 @@ def handle_reaction_added(body, event):
         if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
             return
         
+        original_message = get_linked_message(tagged_msg)
+        if original_message is None: return
+        
         print(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
-        p_msg = PersistentMessage(get_linked_message(tagged_msg))
+        p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             p_msg.add_emoji(emoji_str)
             
@@ -58,11 +61,13 @@ def handle_reaction_removed(body, event):
 
     if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
-        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
-            return
+        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID: return
+        
+        original_message = get_linked_message(tagged_msg)
+        if original_message is None: return
         
         print(f"Removing '{emoji_str}' emoji from <{tagged_msg}>")
-        p_msg = PersistentMessage(get_linked_message(tagged_msg))
+        p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             num_reactions = p_msg.remove_emoji(emoji_str)
             
@@ -86,14 +91,16 @@ def handle_message_reply(event):
     if event.get("parent_user_id") != bot_user.user_id:
         return
     
-    request_interaction = SlackMessage(
+    replied_message = SlackMessage(
         event["team"],
         event["channel"],
         event["thread_ts"]
     )
+        
+    original_message = get_linked_message(replied_message)
+    if original_message is None: return
     
-    # TODO: check that there is a linked message, handle case of users responding to non request interaction messages
-    p_message = PersistentMessage(get_linked_message(request_interaction))
+    p_message = PersistentMessage(original_message)
     p_message.add_comment(event["text"])
     
     slack_app.client.reactions_add(

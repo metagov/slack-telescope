@@ -23,6 +23,12 @@ async def get_rids(api_key: str = Depends(verify_api_key)):
         sensor_interface.get_rids()
     )
     
+@fastapi_app.get("/manifests")
+async def get_rids(api_key: str = Depends(verify_api_key)):
+    return json_serialize(
+        sensor_interface.get_manifests()
+    )
+    
 @fastapi_app.get("/object")
 async def get_object(
     rid: str = Query(...), 

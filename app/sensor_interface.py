@@ -1,4 +1,5 @@
 from rid_lib import RID
+from rid_lib.ext.effector import RIDEffectorError
 from .rid_types import Telescoped
 from .core import effector
 from . import persistent
@@ -22,6 +23,7 @@ def get_manifests():
     return manifests
     
 def get_object(rid: RID):
-    if isinstance(rid, Telescoped):
+    try:
         return effector.deref(rid)
-        
+    except RIDEffectorError:
+        return

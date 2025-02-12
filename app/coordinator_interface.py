@@ -11,6 +11,9 @@ def broadcast_event(event: Event):
     
     for sub_id in subscribers.keys():
         subscribers[sub_id].append(event)
+        
+        if len(subscribers[sub_id]) > 100:
+            del subscribers[sub_id]
             
     if event.event_type in (EventType.NEW, EventType.UPDATE):
         coordinator_cache.write(

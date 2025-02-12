@@ -1,9 +1,10 @@
 from rid_lib.types import SlackMessage, SlackUser
-from .core import slack_app, bot_user_id
-from .config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
-from . import orchestrator
-from .persistent import PersistentMessage, get_linked_message
-from .constants import MessageStatus
+from app.core import slack_app, bot_user
+from app.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
+from app import orchestrator
+from app.persistent import PersistentMessage, get_linked_message
+from app.constants import MessageStatus
+from app.orchestrator.message_handlers import handle_update_message
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(body, event):        
@@ -18,13 +19,16 @@ def handle_reaction_added(body, event):
     )
     emoji_str = event["reaction"]
     
-    if event["item_user"] == bot_user_id:
+    if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
         if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
             return
         
+        original_message = get_linked_message(tagged_msg)
+        if original_message is None: return
+        
         print(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
-        p_msg = PersistentMessage(get_linked_message(tagged_msg))
+        p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             p_msg.add_emoji(emoji_str)
             
@@ -34,6 +38,8 @@ def handle_reaction_added(body, event):
                 timestamp=tagged_msg.ts,
                 name=emoji_str
             )
+            
+            handle_update_message(p_msg.rid)
     
     elif emoji_str == TELESCOPE_EMOJI:
         tagger = SlackUser(team_id, event["user"])
@@ -53,13 +59,15 @@ def handle_reaction_removed(body, event):
     )
     emoji_str = event["reaction"]
 
-    if event["item_user"] == bot_user_id:
+    if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
-        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
-            return
+        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID: return
+        
+        original_message = get_linked_message(tagged_msg)
+        if original_message is None: return
         
         print(f"Removing '{emoji_str}' emoji from <{tagged_msg}>")
-        p_msg = PersistentMessage(get_linked_message(tagged_msg))
+        p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             num_reactions = p_msg.remove_emoji(emoji_str)
             
@@ -71,6 +79,8 @@ def handle_reaction_removed(body, event):
                     name=emoji_str
                 )
             
+            handle_update_message(p_msg.rid)
+            
 
 @slack_app.event({
     "type": "message",
@@ -78,16 +88,19 @@ def handle_reaction_removed(body, event):
 })
 def handle_message_reply(event):
     # only handle replies to bot message
-    if event.get("parent_user_id") != bot_user_id:
+    if event.get("parent_user_id") != bot_user.user_id:
         return
     
-    request_interaction = SlackMessage(
+    replied_message = SlackMessage(
         event["team"],
         event["channel"],
         event["thread_ts"]
     )
         
-    p_message = PersistentMessage(get_linked_message(request_interaction))
+    original_message = get_linked_message(replied_message)
+    if original_message is None: return
+    
+    p_message = PersistentMessage(original_message)
     p_message.add_comment(event["text"])
     
     slack_app.client.reactions_add(
@@ -95,4 +108,6 @@ def handle_message_reply(event):
         timestamp=event["ts"],
         name="thumbsup"
     )
+    
+    handle_update_message(p_message.rid)
     

@@ -1,7 +1,8 @@
 from rid_lib.core import RID
 from rid_lib.types import SlackUser
 from app import orchestrator
-from app.dereference import deref
+from app.core import effector
+from app.config import TELESCOPE_EMOJI
 import json, time
 
 messages = []
@@ -17,12 +18,14 @@ with open("backfill.json", "r") as f:
         
 messages.sort(key=lambda x: x.ts)
 for i, message in enumerate(messages):
-    message_data = deref(message)
+    message_data = effector.deref(message).contents
+    
+    print(message_data)
     
     author_user_id = message_data["user"]
     
     for reaction in message_data["reactions"]:
-        if reaction["name"] == "telescope":
+        if reaction["name"] == TELESCOPE_EMOJI:
             tagger_user_id = reaction["users"][0]
             break
     

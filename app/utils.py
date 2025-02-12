@@ -34,6 +34,11 @@ def rid_params(rid: RID):
         "context": rid.context
     }
     
+def format_timestamp(ts):
+    return datetime.fromtimestamp(
+        float(ts), timezone.utc
+    ).isoformat()
+    
 def retraction_time_elapsed(p_message):
     initial_date = datetime.fromtimestamp(
         float(p_message.retract_interaction.ts),

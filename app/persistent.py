@@ -1,5 +1,6 @@
 import json, os
 from rid_lib.core import RID
+from rid_lib.types import SlackMessage, SlackUser, HTTPS
 from .config import PERSISTENT_DIR
 from .constants import UserStatus, MessageStatus
 from .utils import encode_b64, decode_b64
@@ -81,18 +82,18 @@ class PersistentUser(PersistentObject):
 class PersistentMessage(PersistentObject):
     _instances = {}
     
-    status = persistent_prop("status")
-    author = persistent_prop("author", rid=True)
-    tagger = persistent_prop("tagger", rid=True)
+    status: SlackUser = persistent_prop("status")
+    author: SlackUser = persistent_prop("author", rid=True)
+    tagger: SlackUser = persistent_prop("tagger", rid=True)
     
-    request_interaction = persistent_prop("request_interaction", rid=True)
-    consent_interaction = persistent_prop("consent_interaction", rid=True)
-    retract_interaction = persistent_prop("retract_interaction", rid=True)
-    broadcast_interaction = persistent_prop("broadcast_interaction", rid=True)
-    permalink = persistent_prop("permalink", rid=True)
+    request_interaction: SlackMessage = persistent_prop("request_interaction", rid=True)
+    consent_interaction: SlackMessage = persistent_prop("consent_interaction", rid=True)
+    retract_interaction: SlackMessage = persistent_prop("retract_interaction", rid=True)
+    broadcast_interaction: SlackMessage = persistent_prop("broadcast_interaction", rid=True)
+    permalink: HTTPS = persistent_prop("permalink", rid=True)
     
-    comments = persistent_prop("comments")
-    emojis = persistent_prop("emojis")
+    comments: list[str] = persistent_prop("comments")
+    emojis: list[str] = persistent_prop("emojis")
     
     def __init__(self, rid: RID):
         super().__init__(rid, {
@@ -111,8 +112,10 @@ class PersistentMessage(PersistentObject):
     def remove_emoji(self, emoji_str: str):
         emojis = self._data.setdefault("emojis", {})
         emojis[emoji_str] = max(emojis.get(emoji_str, 0) - 1, 0)
+        if emojis[emoji_str] == 0:
+            del emojis[emoji_str]
         self._write()
-        return emojis[emoji_str]
+        return emojis.get(emoji_str, 0)
         
 class PersistentRequestLink(PersistentObject):
     _instances = {}
@@ -131,11 +134,24 @@ def get_linked_message(request_interaction):
     return PersistentRequestLink(request_interaction).message
         
 
-def retrieve_all_rids():
-    return [
+def retrieve_all_rids(filter_accepted=False):
+    if not os.path.exists(PERSISTENT_DIR):
+        return []
+    
+    rids = [
         RID.from_string(
             decode_b64(
                 fname.removesuffix(".json")
             )
         ) for fname in os.listdir(PERSISTENT_DIR)
     ]
+    
+    if not filter_accepted:
+        return rids
+    
+    filtered_rids = []
+    for rid in rids:
+        if PersistentMessage(rid).status in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
+            filtered_rids.append(rid)
+            
+    return filtered_rids

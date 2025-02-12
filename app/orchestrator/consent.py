@@ -1,12 +1,18 @@
-from rid_lib.types import SlackMessage
-from app.core import slack_app
 from app.persistent import PersistentMessage, PersistentUser
 from app.constants import MessageStatus, UserStatus, ActionId
-from app.components import *
-from app import messages
-from .refresh import refresh_request_interaction
+from app.slack_interface.functions import (
+    create_slack_msg,
+    update_slack_msg, 
+    delete_slack_msg
+)
+from app.slack_interface.composed import (
+    consent_welcome_msg_blocks,
+    consent_interaction_blocks,
+    end_request_interaction_blocks
+)
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
+from .message_handlers import handle_new_message
 
 
 def create_consent_interaction(message):
@@ -16,29 +22,15 @@ def create_consent_interaction(message):
         
     print(f"Sent consent interaction to user <{p_message.author}>")
     
-    slack_app.client.chat_postMessage(
-        channel=p_message.author.user_id,
-        unfurl_links=False,
-        blocks=[
-            build_basic_section(messages.consent_ui_welcome),
-        ]
+    create_slack_msg(
+        p_message.author,
+        consent_welcome_msg_blocks()
     )
     
-    resp = slack_app.client.chat_postMessage(
+    p_message.consent_interaction = create_slack_msg(
+        p_message.author,
         text="Requesting to observe your message",
-        channel=p_message.author.user_id,
-        unfurl_links=False,
-        blocks=[
-            build_consent_msg_ref(message),
-            build_msg_context_row(message),
-            build_consent_interaction_row(message)
-        ]
-    )
-    
-    p_message.consent_interaction = SlackMessage(
-        resp["message"]["team"],
-        resp["channel"],
-        resp["message"]["ts"]
+        blocks=consent_interaction_blocks(message)
     )
     
 def handle_consent_interaction(action_id, message):
@@ -47,10 +39,7 @@ def handle_consent_interaction(action_id, message):
     persistent_user = PersistentUser(p_message.author)
     persistent_user.status = action_id
     
-    slack_app.client.chat_delete(
-        channel=p_message.consent_interaction.channel_id,
-        ts=p_message.consent_interaction.ts
-    )
+    delete_slack_msg(p_message.consent_interaction)
     
     print(f"User <{p_message.author}> has set consent status to {action_id}")
     print(f"Handling message queue of size {len(persistent_user.msg_queue)}")
@@ -58,7 +47,7 @@ def handle_consent_interaction(action_id, message):
     while persistent_user.msg_queue:
         prev_message = persistent_user.dequeue()
         p_prev_message = PersistentMessage(prev_message)
-                
+        
         if action_id == ActionId.OPT_OUT:
             print(f"Message <{prev_message}> rejected")
             p_prev_message.status = MessageStatus.REJECTED
@@ -66,14 +55,16 @@ def handle_consent_interaction(action_id, message):
         elif action_id == ActionId.OPT_IN:
             print(f"Message <{prev_message}> accepted")
             p_prev_message.status = MessageStatus.ACCEPTED
-            create_retract_interaction(prev_message)
-            create_broadcast(prev_message)
+            create_retract_interaction(message)
+            create_broadcast(message)
+            handle_new_message(prev_message)
         
         elif action_id == ActionId.OPT_IN_ANON:
             print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
-            create_retract_interaction(prev_message)
-            create_broadcast(prev_message)
+            create_retract_interaction(message)
+            create_broadcast(message)
+            handle_new_message(prev_message)
             
-        refresh_request_interaction(prev_message)
+        update_slack_msg(p_message.request_interaction, end_request_interaction_blocks(message))
     

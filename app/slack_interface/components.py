@@ -1,17 +1,16 @@
 import re
 from rid_lib.types import SlackUser
-from .constants import ActionId, BlockId, status_display
+from app.constants import ActionId, BlockId, request_status_display
+from app.persistent import PersistentMessage
+from app.config import TEXT_PREVIEW_CHAR_LIMIT
+from app.core import team_id, effector
+from app import message_content
 from .blocks import *
-from .persistent import PersistentMessage
-from .config import TEXT_PREVIEW_CHAR_LIMIT
-from .dereference import deref
-from .core import team_id
-from . import messages
 
 
 def replace_match(match):
     try:
-        user_data = deref(SlackUser(team_id, match.group(1)))
+        user_data = effector.deref(SlackUser(team_id, match.group(1))).contents
         if not user_data or type(user_data) != dict:
             return match.group(0)
         else:
@@ -20,7 +19,7 @@ def replace_match(match):
         return match.group(0)
 
 def format_text(message):
-    text = deref(message)["text"]
+    text = effector.deref(message).contents["text"]
             
     if len(text) > TEXT_PREVIEW_CHAR_LIMIT:
         text = text[:TEXT_PREVIEW_CHAR_LIMIT] + "..."
@@ -40,7 +39,7 @@ def format_text(message):
 
 def build_msg_context_row(message):
     p_message = PersistentMessage(message)
-    author_name = deref(p_message.author)["real_name"]
+    author_name = effector.deref(p_message.author).contents["real_name"]
     
     timestamp = message.ts.split(".")[0]
         
@@ -52,7 +51,7 @@ def build_msg_context_row(message):
     ])
 
 def build_request_msg_ref(message): 
-    tagger_name = deref(PersistentMessage(message).tagger)["real_name"]
+    tagger_name = effector.deref(PersistentMessage(message).tagger).contents["real_name"]
        
     return section_block(
         text_obj(f"Tagged by *{tagger_name}*\n{format_text(message)}", type="mrkdwn")
@@ -60,12 +59,12 @@ def build_request_msg_ref(message):
     
 def build_consent_msg_ref(message):
     return section_block(
-        text_obj(messages.consent_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
+        text_obj(message_content.consent_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
     )
 
 def build_retract_msg_ref(message):
     return section_block(
-        text_obj(messages.retract_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
+        text_obj(message_content.retract_ui_msg_header + f"\n{format_text(message)}", type="mrkdwn")
     )
     
 def build_broadcast_msg_ref(message):    
@@ -77,7 +76,7 @@ def build_request_msg_status(message):
     message_status = PersistentMessage(message).status
         
     return context_block([
-        text_obj(f"Status: {status_display[message_status]}", type="mrkdwn")
+        text_obj(f"Status: {request_status_display[message_status]}", type="mrkdwn")
     ])
     
 def build_basic_section(text):
@@ -127,4 +126,3 @@ def build_retract_interaction_row(rid):
             button_block(ActionId.ANONYMIZE, text_obj("Anonymize"), str(rid))
         ]
     )
-    

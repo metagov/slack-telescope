@@ -1,15 +1,17 @@
-import csv, os, time
-from datetime import datetime, timezone
-from rid_lib.types import HTTPS, SlackMessage, SlackChannel
-from .dereference import deref, transform
-from .persistent import PersistentMessage, retrieve_all_rids
-from .constants import MessageStatus
-from .utils import retraction_time_elapsed
+import csv, os, time, json
+from .rid_types import Telescoped
+from .persistent import retrieve_all_rids
+from .core import effector
 
 
-def export_to_csv():
-    rids = retrieve_all_rids()
-    message_rids = [rid for rid in rids if type(rid) == SlackMessage ]
+def export_msgs_to_csv():    
+    msgs = []
+    for msg_rid in retrieve_all_rids(filter_accepted=True):
+        bundle = effector.deref(Telescoped(msg_rid))
+        if bundle is not None:
+            msg_json = bundle.contents
+        if msg_json is not None:
+            msgs.append(msg_json)
 
     if not os.path.exists("export"):
         os.makedirs("export")
@@ -17,88 +19,28 @@ def export_to_csv():
     timestamp = str(time.time()).replace(".", "_")
     filename = f"export/{timestamp}.csv"
     
-    f = open(filename, "w", newline="")
+    f = open(filename, "w", encoding="utf-8", newline="")
     writer = csv.writer(f)
+    
+    json_keys = list(msgs[0].keys())
 
-    writer.writerow([
-        "message_rid",
-        "text",
-        "channel_name",
-        "message_url",
-        "author_rid",
-        "author_name",
-        "anonymous",
-        "in_thread",
-        "thread_rid",
-        "created_at",
-        "tagger_rid",
-        "tagger_name",
-        "retraction_time_elapsed",
-        "emojis",
-        "comments"
-    ])
+    writer.writerow(json_keys)
 
-    for msg in message_rids:
-        p_msg = PersistentMessage(msg)
-        
-        if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
-            continue
-        
-        message_data = deref(msg)
-        channel = SlackChannel(msg.team_id, msg.channel_id)
-        channel_data = deref(channel)
-        author_data = deref(p_msg.author)
-        tagger_data = deref(p_msg.tagger)
-        msg_url = transform(msg, HTTPS)
-        
-        if p_msg.emojis:
-            emojis = ";".join([
-                k for k, v in p_msg.emojis.items()
-                if v > 0
+    for msg_json in msgs:
+        try:
+            writer.writerow([
+                ";".join(msg_json[k])
+                if isinstance(msg_json[k], list) 
+                else msg_json[k]
+                for k in json_keys
             ])
-        else:
-            emojis = ""
-        
-        if p_msg.comments:
-            comments = ";".join(p_msg.comments)
-        else:
-            comments = ""
-        
-        in_thread = msg.ts != message_data.get("thread_ts", msg.ts)
-        
-        created_at = datetime.fromtimestamp(
-            float(msg.ts), timezone.utc
-            ).strftime("%Y-%m-%d %H:%M:%S")
-        
-        if p_msg.status == MessageStatus.ACCEPTED:
-            author_rid = str(p_msg.author)
-            author_name = author_data.get("real_name")
-            anonymous = False
-            
-        elif p_msg.status == MessageStatus.ACCEPTED_ANON:
-            author_rid = None
-            author_name = None
-            anonymous = True
-        
-        writer.writerow([
-            str(msg),
-            message_data.get("text"),
-            channel_data.get("name"),
-            str(msg_url),
-            author_rid,
-            author_name,
-            anonymous,
-            in_thread,
-            message_data.get("thread_ts"),
-            created_at,
-            str(p_msg.tagger),
-            tagger_data.get("real_name"),
-            retraction_time_elapsed(p_msg),
-            emojis,
-            comments
-        ])
+        except UnicodeEncodeError:
+            with open("failed_export.json", "w") as f:
+                json.dump(msg_json, f, indent=2)
+            print("failed, dumping json")
+            quit()
         
     return filename
 
 if __name__ == "__main__":
-    export_to_csv()
+    export_msgs_to_csv()

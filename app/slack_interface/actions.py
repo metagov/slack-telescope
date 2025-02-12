@@ -1,7 +1,7 @@
 from rid_lib.core import RID
-from .core import slack_app
-from .constants import BlockId
-from . import orchestrator, utils
+from app.core import slack_app
+from app.constants import BlockId
+from app import orchestrator, utils
 
 
 @slack_app.action({"block_id": BlockId.REQUEST})

@@ -1,29 +1,27 @@
-from fastapi import Query, Depends, Request, HTTPException, status
+from fastapi import APIRouter, Query, Depends, HTTPException, status
 from rid_lib.core import RID
 from rid_lib.ext.utils import json_serialize
 from app import sensor_interface, coordinator_interface
-from app.core import slack_handler
-from .core import fastapi_app
 from .auth import verify_api_key
 
+router = APIRouter(
+    dependencies=[Depends(verify_api_key)]
+)
 
-@fastapi_app.post("/slack/listener")
-async def slack_listener(request: Request):
-    return await slack_handler.handle(request)
 
-@fastapi_app.get("/verify")
-async def verify_authorization(api_key: str = Depends(verify_api_key)):
+@router.get("/verify")
+async def verify_authorization():
     return {
         "success": True
     }
 
-@fastapi_app.get("/rids")
-async def get_rids(api_key: str = Depends(verify_api_key)):
+@router.get("/rids")
+async def get_rids():
     return json_serialize(
         sensor_interface.get_rids()
     )
     
-@fastapi_app.get("/object")
+@router.get("/object")
 async def get_object(
     rid: str = Query(...), 
     api_key: str = Depends(verify_api_key)
@@ -39,18 +37,15 @@ async def get_object(
         detail="RID not found"
     )
 
-@fastapi_app.post("/events/subscribe")
-async def subscribe_to_events(api_key: str = Depends(verify_api_key)):
+@router.post("/events/subscribe")
+async def subscribe_to_events():
     subscriber_id = coordinator_interface.register_subscriber()
     return {
         "subscriber_id": subscriber_id
     }
     
-@fastapi_app.get("/events/poll/{subscriber_id}")
-async def poll_events(
-    subscriber_id: str,
-    api_key: str = Depends(verify_api_key),
-):
+@router.get("/events/poll/{subscriber_id}")
+async def poll_events(subscriber_id: str):
     events = coordinator_interface.poll_events(subscriber_id)
     if events is not None:
         return json_serialize(events)

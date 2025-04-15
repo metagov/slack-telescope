@@ -1,6 +1,6 @@
 from rid_lib import RID
 from rid_lib.types import SlackChannel, SlackUser, SlackMessage
-from app.core import slack_app
+from slack_telescope_node.core import slack_app
 
 def create_slack_msg(channel: SlackChannel | SlackUser, blocks=None, text=None):
     if isinstance(channel, SlackChannel):

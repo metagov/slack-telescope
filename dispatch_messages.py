@@ -1,8 +1,8 @@
 from rid_lib.core import RID
 from rid_lib.types import SlackUser
-from app import orchestrator
-from app.core import effector
-from app.config import TELESCOPE_EMOJI
+from slack_telescope_node import orchestrator
+from slack_telescope_node.core import effector
+from slack_telescope_node.config import TELESCOPE_EMOJI
 import json, time
 
 messages = []

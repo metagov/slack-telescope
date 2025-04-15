@@ -1,10 +1,27 @@
 from slack_bolt import App
 from slack_bolt.adapter.fastapi import SlackRequestHandler
+from rid_lib.types import SlackChannel, SlackUser
+from rid_lib.ext import Effector
+from koi_net import NodeInterface
+from koi_net.protocol.node import NodeProfile, NodeProvides, NodeType
 from .config import *
 from .graph import GraphInterface
-from .config import OBSERVATORY_CHANNEL_ID, BROADCAST_CHANNEL_ID
-from rid_lib.types import SlackChannel, SlackUser
-from rid_lib.ext import Effector, Cache
+from .config import OBSERVATORY_CHANNEL_ID, BROADCAST_CHANNEL_ID, HOST, PORT
+from .rid_types import Telescoped
+
+
+node = NodeInterface(
+    name="slack-telescope",
+    profile=NodeProfile(
+        base_url=f"http://{HOST}:{PORT}",
+        node_type=NodeType.FULL,
+        provides=NodeProvides(
+            event=[Telescoped],
+            state=[Telescoped]
+        )
+    ),
+    use_kobj_processor_thread=True
+)
 
 slack_app = App(
     token=SLACK_BOT_TOKEN,
@@ -14,8 +31,8 @@ slack_app = App(
 
 slack_handler = SlackRequestHandler(slack_app)
 
-cache = Cache(CACHE_DIR)
-effector = Effector(cache)
+# cache = Cache(CACHE_DIR)
+effector = Effector(node.cache)
 
 # registers actions with effector
 from .effector import *

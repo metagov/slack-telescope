@@ -1,10 +1,9 @@
 from rid_lib import RID
-from rid_lib.ext.effector import RIDEffectorError
 from .rid_types import Telescoped
 from .core import effector
 from . import persistent
 from .rid_types import Telescoped
-from .core import cache
+# from .core import cache
 
 def get_rids():
     return [
@@ -25,5 +24,5 @@ def get_manifests():
 def get_object(rid: RID):
     try:
         return effector.deref(rid)
-    except RIDEffectorError:
+    except LookupError:
         return

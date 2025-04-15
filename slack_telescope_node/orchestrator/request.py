@@ -1,8 +1,8 @@
-from app.core import effector, observatory_channel
-from app.persistent import PersistentMessage, PersistentUser, create_link
-from app.constants import MessageStatus, UserStatus, ActionId
-from app.slack_interface.functions import create_slack_msg, update_slack_msg
-from app.slack_interface.composed import (
+from slack_telescope_node.core import effector, observatory_channel
+from slack_telescope_node.persistent import PersistentMessage, PersistentUser, create_link
+from slack_telescope_node.constants import MessageStatus, UserStatus, ActionId
+from slack_telescope_node.slack_interface.functions import create_slack_msg, update_slack_msg
+from slack_telescope_node.slack_interface.composed import (
     request_interaction_blocks, 
     alt_request_interaction_blocks,
     end_request_interaction_blocks
@@ -10,7 +10,8 @@ from app.slack_interface.composed import (
 from .consent import create_consent_interaction
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
-from .message_handlers import handle_new_message
+from ..core import node
+# from .message_handlers import handle_new_message
 
 
 def create_request_interaction(message, author, tagger):    
@@ -73,14 +74,20 @@ def handle_request_interaction(action_id, message):
             p_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(message)
             create_broadcast(message)
-            handle_new_message(message)
+            
+            node.processor.handle(rid=message)
+            
+            # handle_new_message(message)
             
         elif p_user.status == UserStatus.OPT_IN_ANON:
             print(f"Message <{message}> accepted (anonymous)")
             p_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(message)
             create_broadcast(message)
-            handle_new_message(message)
+            
+            node.processor.handle(rid=message)
+
+            # handle_new_message(message)
              
         elif p_user.status == UserStatus.OPT_OUT:
             print(f"Message <{message}> rejected")

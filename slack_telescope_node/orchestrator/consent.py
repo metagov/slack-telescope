@@ -1,18 +1,18 @@
-from app.persistent import PersistentMessage, PersistentUser
-from app.constants import MessageStatus, UserStatus, ActionId
-from app.slack_interface.functions import (
+from slack_telescope_node.persistent import PersistentMessage, PersistentUser
+from slack_telescope_node.constants import MessageStatus, UserStatus, ActionId
+from slack_telescope_node.slack_interface.functions import (
     create_slack_msg,
     update_slack_msg, 
     delete_slack_msg
 )
-from app.slack_interface.composed import (
+from slack_telescope_node.slack_interface.composed import (
     consent_welcome_msg_blocks,
     consent_interaction_blocks,
     end_request_interaction_blocks
 )
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
-from .message_handlers import handle_new_message
+from ..core import node, effector
 
 
 def create_consent_interaction(message):
@@ -57,14 +57,22 @@ def handle_consent_interaction(action_id, message):
             p_prev_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(message)
             create_broadcast(message)
-            handle_new_message(prev_message)
+            
+            # bundle = effector.deref(prev_message, refresh=True)
+            node.processor.handle(rid=prev_message)
+            
+            # handle_new_message(prev_message)
         
         elif action_id == ActionId.OPT_IN_ANON:
             print(f"Message <{prev_message}> accepted (anonymous)")
             p_prev_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(message)
             create_broadcast(message)
-            handle_new_message(prev_message)
+            
+            # bundle = effector.deref(prev_message, refresh=True)
+            node.processor.handle(rid=prev_message)
+            
+            # handle_new_message(prev_message)
             
         update_slack_msg(p_message.request_interaction, end_request_interaction_blocks(message))
     

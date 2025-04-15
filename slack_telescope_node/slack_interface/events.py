@@ -1,10 +1,10 @@
 from rid_lib.types import SlackMessage, SlackUser
-from app.core import slack_app, bot_user
-from app.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
-from app import orchestrator
-from app.persistent import PersistentMessage, get_linked_message
-from app.constants import MessageStatus
-from app.orchestrator.message_handlers import handle_update_message
+from slack_telescope_node.core import slack_app, bot_user
+from slack_telescope_node.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
+from slack_telescope_node import orchestrator
+from slack_telescope_node.persistent import PersistentMessage, get_linked_message
+from slack_telescope_node.constants import MessageStatus
+from slack_telescope_node.orchestrator.message_handlers import handle_update_message
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(body, event):        

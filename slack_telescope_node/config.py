@@ -6,6 +6,9 @@ load_dotenv()
 DEBUG = os.path.exists("app/debug")
 print("DEBUG MODE:", DEBUG)
 
+HOST = "127.0.0.1"
+PORT = 8001
+
 if DEBUG:
     TELESCOPE_EMOJI = "eyes"
     OBSERVATORY_CHANNEL_ID = "C081BRCFJJY"

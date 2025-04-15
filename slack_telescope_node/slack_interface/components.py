@@ -1,10 +1,10 @@
 import re
 from rid_lib.types import SlackUser
-from app.constants import ActionId, BlockId, request_status_display
-from app.persistent import PersistentMessage
-from app.config import TEXT_PREVIEW_CHAR_LIMIT
-from app.core import team_id, effector
-from app import message_content
+from slack_telescope_node.constants import ActionId, BlockId, request_status_display
+from slack_telescope_node.persistent import PersistentMessage
+from slack_telescope_node.config import TEXT_PREVIEW_CHAR_LIMIT
+from slack_telescope_node.core import team_id, effector
+from slack_telescope_node import message_content
 from .blocks import *
 
 

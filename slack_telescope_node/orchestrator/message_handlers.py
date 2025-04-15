@@ -1,9 +1,9 @@
-from rid_lib.ext import Event, EventType
-from app.rid_types import Telescoped
-from app.core import effector, cache
-from app.slack_interface.components import *
-from app import coordinator_interface
+from koi_net.protocol.event import Event, EventType
+from slack_telescope_node.rid_types import Telescoped
+from slack_telescope_node.core import effector, node
+from slack_telescope_node.slack_interface.components import *
 
+# TODO: refactor
 
 def handle_new_message(message):
     t_message = Telescoped(message)

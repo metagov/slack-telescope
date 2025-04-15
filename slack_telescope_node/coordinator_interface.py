@@ -1,6 +1,9 @@
 import secrets
-from rid_lib.ext import Event, Cache, EventType, CacheBundle
-from app import sensor_interface
+from koi_net.protocol.event import Event, EventType
+from rid_lib.ext import Cache, Bundle
+from slack_telescope_node import sensor_interface
+
+# TODO: factor out this coordinator
 
 coordinator_cache = Cache("coordinator_cache")
 

@@ -1,18 +1,20 @@
-from app.core import graph
-from app.config import GRAPH_ENABLED
-from app.persistent import PersistentMessage
-from app.constants import MessageStatus
-from app.slack_interface.functions import create_slack_msg, update_slack_msg
-from app.slack_interface.composed import (
+from koi_net.protocol.event import EventType
+from slack_telescope_node.core import graph
+from slack_telescope_node.config import GRAPH_ENABLED
+from slack_telescope_node.persistent import PersistentMessage
+from slack_telescope_node.constants import MessageStatus
+from slack_telescope_node.slack_interface.functions import create_slack_msg, update_slack_msg
+from slack_telescope_node.slack_interface.composed import (
     retract_interaction_blocks, 
     end_retract_interaction_blocks, 
     end_request_interaction_blocks
 )
-from app.utils import retraction_time_elapsed
-from app.constants import ActionId
-from app import message_content
+from slack_telescope_node.utils import retraction_time_elapsed
+from slack_telescope_node.constants import ActionId
+from slack_telescope_node import message_content
 from .broadcast import delete_broadcast
-from .message_handlers import handle_forget_message, handle_update_message
+# from .message_handlers import handle_forget_message, handle_update_message
+from ..core import node
 
 
 def create_retract_interaction(message):
@@ -50,7 +52,10 @@ def handle_retract_interaction(action_id, message):
             )
             
             delete_broadcast(message)
-            handle_forget_message(message)
+            
+            node.processor.handle(rid=message, event_type=EventType.FORGET)
+            
+            # handle_forget_message(message)
         
         elif action_id == ActionId.ANONYMIZE:
             print(f"Message <{message}> anonymized")
@@ -63,7 +68,9 @@ def handle_retract_interaction(action_id, message):
                 )
             )
             
-            handle_update_message(message)
+            node.processor.handle(rid=message)
+            
+            # handle_update_message(message)
         
         update_slack_msg(p_message.request_interaction, end_request_interaction_blocks(message))
                         

@@ -95,13 +95,16 @@ async def poll_events(req: PollEvents) -> EventsPayload:
 
 @koi_net_router.post(FETCH_RIDS_PATH)
 async def fetch_rids(req: FetchRids) -> RidsPayload:
-    rids = []
-    for _rid in persistent.retrieve_all_rids(filter_accepted=True):
-        rid = Telescoped(_rid)
-
-        if not rid_types or type(rid) not in req.rid_types:
-            rids.append(rid)
-                    
+    if req.rid_types:
+        rid_types = set(node.identity.profile.provides.state) & set(req.rid_types)
+    else:
+        rid_types = node.identity.profile.provides.state
+        
+    if rid_types:
+        rids = node.cache.list_rids(rid_types)
+    else:
+        rids = []
+    
     return RidsPayload(rids=rids)
     
 @koi_net_router.post(FETCH_MANIFESTS_PATH)
@@ -110,16 +113,7 @@ async def fetch_manifests(req: FetchManifests) -> ManifestsPayload:
 
 @koi_net_router.post(FETCH_BUNDLES_PATH)
 async def fetch_bundles(req: FetchBundles) -> BundlesPayload:
-    bundles = []
-    not_found = []
-    for rid in req.rids:
-        bundle = effector.deref(rid)
-        if bundle:
-            bundles.append(bundle)
-        else:
-            not_found.append(rid)
-            
-    return BundlesPayload(bundles=bundles, not_found=not_found)
+    return node.network.response_handler.fetch_bundles(req)
         
 app.include_router(koi_net_router)
     

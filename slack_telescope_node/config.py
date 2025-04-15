@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 load_dotenv()
 
-DEBUG = os.path.exists("app/debug")
+DEBUG = os.path.exists("slack_telescope_node/debug")
 print("DEBUG MODE:", DEBUG)
 
 HOST = "127.0.0.1"

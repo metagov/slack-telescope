@@ -4,11 +4,10 @@ import secrets
 import logging
 from contextlib import asynccontextmanager
 
+from slack_bolt.adapter.socket_mode import SocketModeHandler
 from fastapi import APIRouter, FastAPI
-from fastapi import Security, HTTPException, status, Query, Depends, Request
+from fastapi import Security, HTTPException, status, Depends, Request
 from fastapi.security import APIKeyHeader
-from rid_lib.core import RID
-from rid_lib.ext.utils import json_serialize
 from koi_net.processor.knowledge_object import KnowledgeSource
 from koi_net.protocol.api_models import (
     PollEvents,
@@ -28,9 +27,12 @@ from koi_net.protocol.consts import (
     FETCH_BUNDLES_PATH
 )
 
-from . import sensor_interface, coordinator_interface
-from .config import AUTH_JSON_PATH
-from .core import node, slack_handler
+from slack_telescope_node import rid_types
+from slack_telescope_node.rid_types import Telescoped
+
+from . import persistent
+from .config import AUTH_JSON_PATH, SLACK_APP_TOKEN
+from .core import node, slack_handler, slack_app, effector
 
 logger = logging.getLogger(__name__)
 
@@ -55,12 +57,12 @@ def verify_api_key(api_key: str = Security(api_key_header)):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     node.start()
+    SocketModeHandler(slack_app, SLACK_APP_TOKEN).connect()
     yield
     node.stop()
 
 
 app = FastAPI(lifespan=lifespan)
-
 
 @app.post("/slack/listener")
 async def slack_listener(request: Request):
@@ -68,17 +70,15 @@ async def slack_listener(request: Request):
 
 
 koi_net_router = APIRouter(
-    prefix="/koi-net"
+    prefix="/koi-net",
+    dependencies=[Depends(verify_api_key)]
 )
 
-@app.get("/verify")
-async def verify_authorization(api_key: str = Depends(verify_api_key)):
+@koi_net_router.post("/verify")
+async def verify_authorization():
     return {
         "success": True
     }
-
-####
-
 
 @koi_net_router.post(BROADCAST_EVENTS_PATH)
 async def broadcast_events(req: EventsPayload):
@@ -95,19 +95,35 @@ async def poll_events(req: PollEvents) -> EventsPayload:
 
 @koi_net_router.post(FETCH_RIDS_PATH)
 async def fetch_rids(req: FetchRids) -> RidsPayload:
-    return node.network.response_handler.fetch_rids(req)
+    rids = []
+    for _rid in persistent.retrieve_all_rids(filter_accepted=True):
+        rid = Telescoped(_rid)
 
+        if not rid_types or type(rid) not in req.rid_types:
+            rids.append(rid)
+                    
+    return RidsPayload(rids=rids)
+    
 @koi_net_router.post(FETCH_MANIFESTS_PATH)
 async def fetch_manifests(req: FetchManifests) -> ManifestsPayload:
     return node.network.response_handler.fetch_manifests(req)
 
 @koi_net_router.post(FETCH_BUNDLES_PATH)
 async def fetch_bundles(req: FetchBundles) -> BundlesPayload:
-    return node.network.response_handler.fetch_bundles(req)
-
+    bundles = []
+    not_found = []
+    for rid in req.rids:
+        bundle = effector.deref(rid)
+        if bundle:
+            bundles.append(bundle)
+        else:
+            not_found.append(rid)
+            
+    return BundlesPayload(bundles=bundles, not_found=not_found)
+        
 app.include_router(koi_net_router)
     
-####
+"""
 
 @app.get("/rids")
 async def get_rids(api_key: str = Depends(verify_api_key)):
@@ -157,3 +173,4 @@ async def poll_events(
         status_code=status.HTTP_404_NOT_FOUND,
         detail="Subscriber not found"
     )
+"""

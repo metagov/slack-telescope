@@ -6,5 +6,6 @@ uvicorn.run(
     host=HOST,
     port=PORT,
     reload=DEBUG,
-    log_level="debug"    
+    log_level="debug" if DEBUG else None,
+    log_config=None
 )

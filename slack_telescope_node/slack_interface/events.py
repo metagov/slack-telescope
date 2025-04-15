@@ -4,6 +4,7 @@ from slack_telescope_node.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
 from slack_telescope_node import orchestrator
 from slack_telescope_node.persistent import PersistentMessage, get_linked_message
 from slack_telescope_node.constants import MessageStatus
+from slack_telescope_node.rid_types import Telescoped
 # from slack_telescope_node.orchestrator.message_handlers import handle_update_message
 from ..core import node
 
@@ -41,7 +42,7 @@ def handle_reaction_added(body, event):
             )
             
             # handle_update_message(p_msg.rid)
-            node.processor.handle(rid=p_msg.rid)
+            node.processor.handle(rid=Telescoped(p_msg.rid))
     
     elif emoji_str == TELESCOPE_EMOJI:
         print("got a reaction")
@@ -83,7 +84,7 @@ def handle_reaction_removed(body, event):
                 )
             
             # handle_update_message(p_msg.rid)
-            node.processor.handle(rid=p_msg.rid)
+            node.processor.handle(rid=Telescoped(p_msg.rid))
             
 
 @slack_app.event({
@@ -114,4 +115,4 @@ def handle_message_reply(event):
     )
     
     # handle_update_message(p_message.rid)
-    node.processor.handle(rid=p_message.rid)
+    node.processor.handle(rid=Telescoped(p_message.rid))

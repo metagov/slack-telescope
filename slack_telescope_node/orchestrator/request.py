@@ -10,6 +10,7 @@ from slack_telescope_node.slack_interface.composed import (
 from .consent import create_consent_interaction
 from .retract import create_retract_interaction
 from .broadcast import create_broadcast
+from ..rid_types import Telescoped
 from ..core import node
 # from .message_handlers import handle_new_message
 
@@ -75,7 +76,7 @@ def handle_request_interaction(action_id, message):
             create_retract_interaction(message)
             create_broadcast(message)
             
-            node.processor.handle(rid=message)
+            node.processor.handle(rid=Telescoped(message))
             
             # handle_new_message(message)
             
@@ -85,7 +86,7 @@ def handle_request_interaction(action_id, message):
             create_retract_interaction(message)
             create_broadcast(message)
             
-            node.processor.handle(rid=message)
+            node.processor.handle(rid=Telescoped(message))
 
             # handle_new_message(message)
              

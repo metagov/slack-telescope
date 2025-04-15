@@ -3,6 +3,7 @@ from slack_telescope_node.core import graph
 from slack_telescope_node.config import GRAPH_ENABLED
 from slack_telescope_node.persistent import PersistentMessage
 from slack_telescope_node.constants import MessageStatus
+from slack_telescope_node.rid_types import Telescoped
 from slack_telescope_node.slack_interface.functions import create_slack_msg, update_slack_msg
 from slack_telescope_node.slack_interface.composed import (
     retract_interaction_blocks, 
@@ -53,7 +54,7 @@ def handle_retract_interaction(action_id, message):
             
             delete_broadcast(message)
             
-            node.processor.handle(rid=message, event_type=EventType.FORGET)
+            node.processor.handle(rid=Telescoped(message), event_type=EventType.FORGET)
             
             # handle_forget_message(message)
         
@@ -68,7 +69,7 @@ def handle_retract_interaction(action_id, message):
                 )
             )
             
-            node.processor.handle(rid=message)
+            node.processor.handle(rid=Telescoped(message))
             
             # handle_update_message(message)
         

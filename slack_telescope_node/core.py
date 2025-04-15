@@ -9,7 +9,6 @@ from .graph import GraphInterface
 from .config import OBSERVATORY_CHANNEL_ID, BROADCAST_CHANNEL_ID, HOST, PORT
 from .rid_types import Telescoped
 
-
 node = NodeInterface(
     name="slack-telescope",
     profile=NodeProfile(
@@ -36,6 +35,8 @@ effector = Effector(node.cache)
 
 # registers actions with effector
 from .effector import *
+
+from . import knowledge_handlers
 
 if GRAPH_ENABLED:
     graph = GraphInterface(NEO4J_URI, NEO4J_AUTH, NEO4J_DB)

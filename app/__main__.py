@@ -1,7 +1,8 @@
 import uvicorn
+from .config import DEBUG
 
 uvicorn.run(
     "app.server:fastapi_app",
-    reload=True,
+    reload=DEBUG,
     log_level="debug"    
 )

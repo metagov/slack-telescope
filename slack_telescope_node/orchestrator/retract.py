@@ -1,6 +1,6 @@
 from koi_net.protocol.event import EventType
-from slack_telescope_node.core import graph
-from slack_telescope_node.config import GRAPH_ENABLED
+# from slack_telescope_node.core import graph
+# from slack_telescope_node.config import GRAPH_ENABLED
 from slack_telescope_node.persistent import PersistentMessage
 from slack_telescope_node.constants import MessageStatus
 from slack_telescope_node.rid_types import Telescoped
@@ -27,12 +27,12 @@ def create_retract_interaction(message):
         blocks=retract_interaction_blocks(message)
     )
                     
-    if GRAPH_ENABLED:
-        graph.create(p_message.author)
-        graph.create(p_message.tagger)
-        graph.create(message)
-        graph.create_link(p_message.author, message, "wrote")
-        graph.create_link(p_message.tagger, message, "tagged")
+    # if GRAPH_ENABLED:
+    #     graph.create(p_message.author)
+    #     graph.create(p_message.tagger)
+    #     graph.create(message)
+    #     graph.create_link(p_message.author, message, "wrote")
+    #     graph.create_link(p_message.tagger, message, "tagged")
     
 def handle_retract_interaction(action_id, message):
     p_message = PersistentMessage(message)
@@ -42,8 +42,8 @@ def handle_retract_interaction(action_id, message):
             print(f"Message <{message}> retracted")
             p_message.status = MessageStatus.RETRACTED
         
-            if GRAPH_ENABLED:
-                graph.delete(message)
+            # if GRAPH_ENABLED:
+            #     graph.delete(message)
             
             update_slack_msg(
                 p_message.retract_interaction, 
@@ -69,7 +69,7 @@ def handle_retract_interaction(action_id, message):
                 )
             )
             
-            node.processor.handle(rid=Telescoped(message))
+            node.effector.deref(Telescoped(message))
             
             # handle_update_message(message)
         

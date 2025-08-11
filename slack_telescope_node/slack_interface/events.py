@@ -1,6 +1,5 @@
 from rid_lib.types import SlackMessage, SlackUser
 from slack_telescope_node.core import slack_app, bot_user
-from slack_telescope_node.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
 from slack_telescope_node import orchestrator
 from slack_telescope_node.persistent import PersistentMessage, get_linked_message
 from slack_telescope_node.constants import MessageStatus
@@ -23,7 +22,7 @@ def handle_reaction_added(body, event):
     
     if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
-        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
+        if tagged_msg.channel_id != node.config.telescope.observatory_channel_id:
             return
         
         original_message = get_linked_message(tagged_msg)
@@ -42,9 +41,9 @@ def handle_reaction_added(body, event):
             )
             
             # handle_update_message(p_msg.rid)
-            node.processor.handle(rid=Telescoped(p_msg.rid))
+            node.effector.deref(Telescoped(p_msg.rid))
     
-    elif emoji_str == TELESCOPE_EMOJI:
+    elif emoji_str == node.config.telescope.telescope_emoji:
         print("got a reaction")
         tagger = SlackUser(team_id, event["user"])
         author = SlackUser(team_id, event["item_user"])
@@ -65,7 +64,7 @@ def handle_reaction_removed(body, event):
 
     if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
-        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID: return
+        if tagged_msg.channel_id != node.config.telescope.observatory_channel_id: return
         
         original_message = get_linked_message(tagged_msg)
         if original_message is None: return
@@ -84,12 +83,12 @@ def handle_reaction_removed(body, event):
                 )
             
             # handle_update_message(p_msg.rid)
-            node.processor.handle(rid=Telescoped(p_msg.rid))
+            node.effector.deref(Telescoped(p_msg.rid))
             
 
 @slack_app.event({
     "type": "message",
-    "channel": OBSERVATORY_CHANNEL_ID
+    "channel": node.config.telescope.observatory_channel_id
 })
 def handle_message_reply(event):
     # only handle replies to bot message
@@ -115,4 +114,4 @@ def handle_message_reply(event):
     )
     
     # handle_update_message(p_message.rid)
-    node.processor.handle(rid=Telescoped(p_message.rid))
+    node.effector.deref(Telescoped(p_message.rid))

@@ -1,8 +1,4 @@
+koi-net>=1.1.0-beta.2
 slack_bolt
 neo4j
-python-dotenv
-fastapi
-uvicorn
-rid-lib>=3.1.2
-koi-net
 rich

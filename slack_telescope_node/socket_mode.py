@@ -1,9 +1,9 @@
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from .core import node, slack_app
-from .config import SLACK_APP_TOKEN
 
-node.start()
+
+node.lifecycle.start()
 try:
-    SocketModeHandler(slack_app, SLACK_APP_TOKEN).start()
+    SocketModeHandler(slack_app, node.config.env.slack_app_token).start()
 finally:
-    node.stop()
+    node.lifecycle.stop()

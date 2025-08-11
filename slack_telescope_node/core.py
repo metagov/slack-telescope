@@ -1,54 +1,52 @@
 from slack_bolt import App
 from slack_bolt.adapter.fastapi import SlackRequestHandler
+from fastapi import Request
 from rid_lib.types import SlackChannel, SlackUser
-from rid_lib.ext import Effector
 from koi_net import NodeInterface
-from koi_net.protocol.node import NodeProfile, NodeProvides, NodeType
-from .config import *
+from .config import SlackTelescopeNodeConfig
 from .graph import GraphInterface
-from .config import OBSERVATORY_CHANNEL_ID, BROADCAST_CHANNEL_ID, HOST, PORT
-from .rid_types import Telescoped
+from .persistent import PersistentObject
 
 node = NodeInterface(
-    name="slack-telescope",
-    profile=NodeProfile(
-        base_url=f"http://{HOST}:{PORT}",
-        node_type=NodeType.FULL,
-        provides=NodeProvides(
-            event=[Telescoped],
-            state=[Telescoped]
-        )
-    ),
+    config=SlackTelescopeNodeConfig.load_from_yaml("config.yaml"),
     use_kobj_processor_thread=True
 )
 
+PersistentObject._directory = node.config.telescope.persistent_dir
+
 slack_app = App(
-    token=SLACK_BOT_TOKEN,
-    signing_secret=SLACK_SIGNING_SECRET,
+    token=node.config.env.slack_bot_token,
+    signing_secret=node.config.env.slack_signing_secret,
     raise_error_for_unhandled_request=False
 )
 
 slack_handler = SlackRequestHandler(slack_app)
 
-# cache = Cache(CACHE_DIR)
-effector = Effector(node.cache)
+from . import effector_actions
 
-# registers actions with effector
-from .effector import *
+@node.server.app.post("/slack-listener")
+async def slack_listener(request: Request):
+    return await slack_handler.handle(request)
 
-from . import knowledge_handlers
 
-if GRAPH_ENABLED:
-    graph = GraphInterface(NEO4J_URI, NEO4J_AUTH, NEO4J_DB)
-else:
-    graph = None
+# if GRAPH_ENABLED:
+#     graph = GraphInterface(NEO4J_URI, NEO4J_AUTH, NEO4J_DB)
+# else:
+#     graph = None
 
 resp = slack_app.client.auth_test()
 team_id = resp["team_id"]
 
 bot_user = SlackUser(team_id, resp["user_id"])
-observatory_channel = SlackChannel(team_id, OBSERVATORY_CHANNEL_ID)
-broadcast_channel = SlackChannel(team_id, BROADCAST_CHANNEL_ID)
+
+observatory_channel = SlackChannel(
+    team_id=team_id, 
+    channel_id=node.config.telescope.observatory_channel_id)
+
+broadcast_channel = SlackChannel(
+    team_id=team_id, 
+    channel_id=node.config.telescope.broadcast_channel_id
+)
 
 # registers handlers/listeners with Slack
 from .slack_interface import actions, events, commands

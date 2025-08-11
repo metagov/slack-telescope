@@ -1,11 +1,3 @@
-import uvicorn
-from .config import DEBUG, HOST, PORT
+from .core import node
 
-uvicorn.run(
-    "slack_telescope_node.server:app",
-    host=HOST,
-    port=PORT,
-    reload=DEBUG,
-    log_level="debug" if DEBUG else None,
-    log_config=None
-)
+node.server.run()

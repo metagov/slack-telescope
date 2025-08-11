@@ -1,8 +1,11 @@
-from slack_telescope_node.core import effector, observatory_channel
-from slack_telescope_node.persistent import PersistentMessage, PersistentUser, create_link
-from slack_telescope_node.constants import MessageStatus, UserStatus, ActionId
-from slack_telescope_node.slack_interface.functions import create_slack_msg, update_slack_msg
-from slack_telescope_node.slack_interface.composed import (
+from functools import lru_cache
+from rid_lib import RID
+from rid_lib.types import SlackMessage
+from ..core import node, slack_app, observatory_channel
+from ..persistent import PersistentMessage, PersistentUser, create_link
+from ..constants import MessageStatus, UserStatus, ActionId
+from ..slack_interface.functions import create_slack_msg, update_slack_msg
+from ..slack_interface.composed import (
     request_interaction_blocks, 
     alt_request_interaction_blocks,
     end_request_interaction_blocks
@@ -15,6 +18,14 @@ from ..core import node
 # from .message_handlers import handle_new_message
 
 
+@lru_cache(maxsize=128)
+def slack_message_rid_to_url(rid: SlackMessage):
+    url_str = slack_app.client.chat_getPermalink(
+        channel=rid.channel_id,
+        message_ts=rid.ts
+    )["permalink"]
+    return RID.from_string(url_str)
+
 def create_request_interaction(message, author, tagger):    
     p_message = PersistentMessage(message)
     
@@ -25,12 +36,12 @@ def create_request_interaction(message, author, tagger):
     p_message.status = MessageStatus.TAGGED
     p_message.author = author
     p_message.tagger = tagger
-    p_message.permalink = effector.execute("transform", message)
+    p_message.permalink = slack_message_rid_to_url(message)
     
-    author_name = effector.deref(author).contents["real_name"]
-    tagger_name = effector.deref(tagger).contents["real_name"]
+    author_name = node.effector.deref(author).contents["real_name"]
+    tagger_name = node.effector.deref(tagger).contents["real_name"]
     
-    channel_data = effector.deref(message.channel).contents
+    channel_data = node.effector.deref(message.channel).contents
     print(f"New message <{message}> tagged in #{channel_data['name']} "
         f"(author: {author_name}, tagger: {tagger_name})"
     )
@@ -52,7 +63,7 @@ def create_request_interaction(message, author, tagger):
 def handle_request_interaction(action_id, message):
     p_message = PersistentMessage(message)
     p_user = PersistentUser(p_message.author)
-    author = effector.deref(p_message.author).contents
+    author = node.effector.deref(p_message.author).contents
     
     print(f"Handling request interaction action: '{action_id}' for message <{message}>")
     if action_id == ActionId.REQUEST:
@@ -76,7 +87,7 @@ def handle_request_interaction(action_id, message):
             create_retract_interaction(message)
             create_broadcast(message)
             
-            node.processor.handle(rid=Telescoped(message))
+            node.effector.deref(Telescoped(message))
             
             # handle_new_message(message)
             
@@ -86,7 +97,7 @@ def handle_request_interaction(action_id, message):
             create_retract_interaction(message)
             create_broadcast(message)
             
-            node.processor.handle(rid=Telescoped(message))
+            node.effector.deref(Telescoped(message))
 
             # handle_new_message(message)
              

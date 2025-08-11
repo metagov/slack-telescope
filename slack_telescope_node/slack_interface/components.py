@@ -2,15 +2,14 @@ import re
 from rid_lib.types import SlackUser
 from slack_telescope_node.constants import ActionId, BlockId, request_status_display
 from slack_telescope_node.persistent import PersistentMessage
-from slack_telescope_node.config import TEXT_PREVIEW_CHAR_LIMIT
-from slack_telescope_node.core import team_id, effector
+from slack_telescope_node.core import team_id, node
 from slack_telescope_node import message_content
 from .blocks import *
 
 
 def replace_match(match):
     try:
-        user_data = effector.deref(SlackUser(team_id, match.group(1))).contents
+        user_data = node.effector.deref(SlackUser(team_id, match.group(1))).contents
         if not user_data or type(user_data) != dict:
             return match.group(0)
         else:
@@ -19,10 +18,10 @@ def replace_match(match):
         return match.group(0)
 
 def format_text(message):
-    text = effector.deref(message).contents["text"]
+    text = node.effector.deref(message).contents["text"]
             
-    if len(text) > TEXT_PREVIEW_CHAR_LIMIT:
-        text = text[:TEXT_PREVIEW_CHAR_LIMIT] + "..."
+    if len(text) > node.config.telescope.text_preview_char_limit:
+        text = text[:node.config.telescope.text_preview_char_limit] + "..."
     
     text = text.replace("<!everyone>", "@ everyone")
     text = text.replace("<!channel>", "@ channel")
@@ -39,7 +38,7 @@ def format_text(message):
 
 def build_msg_context_row(message):
     p_message = PersistentMessage(message)
-    author_name = effector.deref(p_message.author).contents["real_name"]
+    author_name = node.effector.deref(p_message.author).contents["real_name"]
     
     timestamp = message.ts.split(".")[0]
         
@@ -51,7 +50,7 @@ def build_msg_context_row(message):
     ])
 
 def build_request_msg_ref(message): 
-    tagger_name = effector.deref(PersistentMessage(message).tagger).contents["real_name"]
+    tagger_name = node.effector.deref(PersistentMessage(message).tagger).contents["real_name"]
        
     return section_block(
         text_obj(f"Tagged by *{tagger_name}*\n{format_text(message)}", type="mrkdwn")

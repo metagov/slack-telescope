@@ -6,3 +6,4 @@ persistent
 export
 *.json
 debug
+OLD_*

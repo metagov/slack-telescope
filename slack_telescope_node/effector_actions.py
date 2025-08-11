@@ -1,7 +1,8 @@
-from rid_lib import RID
-from rid_lib.types import SlackMessage, SlackUser, SlackChannel, SlackWorkspace
 from slack_sdk.errors import SlackApiError
-from .core import slack_app, effector
+from rid_lib.ext import Bundle
+from rid_lib.types import SlackMessage, SlackUser, SlackChannel, SlackWorkspace
+from koi_net.context import ActionContext
+from .core import node, slack_app
 from .rid_types import Telescoped
 from .persistent import PersistentMessage
 from .constants import MessageStatus
@@ -10,14 +11,17 @@ from . import utils
 
 # DEREFERENCE
 
-@effector.register_dereference(SlackUser)
-def deref_slack_user(rid: SlackUser):
-    return slack_app.client.users_info(
-        user=rid.user_id
-    )["user"]
+@node.effector.register_action(SlackUser)
+def deref_slack_user(ctx: ActionContext, rid: SlackUser):
+    return Bundle.generate(
+        rid=rid,
+        contents=slack_app.client.users_info(
+            user=rid.user_id
+        )["user"]
+    )
 
-@effector.register_dereference(SlackMessage)
-def deref_slack_message(rid: SlackMessage):
+@node.effector.register_action(SlackMessage)
+def deref_slack_message(ctx: ActionContext, rid: SlackMessage):
     def join_and_retry_on_err(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -31,38 +35,47 @@ def deref_slack_message(rid: SlackMessage):
             else:
                 raise err
 
-    return join_and_retry_on_err(
-        func=slack_app.client.conversations_replies,
-        channel=rid.channel_id,
-        ts=rid.ts,
-        limit=1
-    )["messages"][0]
+    return Bundle.generate(
+        rid=rid,
+        contents=join_and_retry_on_err(
+            func=slack_app.client.conversations_replies,
+            channel=rid.channel_id,
+            ts=rid.ts,
+            limit=1
+        )["messages"][0]
+    )
 
-@effector.register_dereference(SlackChannel)
-def deref_slack_channel(rid: SlackChannel):
-    return slack_app.client.conversations_info(
-        channel=rid.channel_id
-    )["channel"]
+@node.effector.register_action(SlackChannel)
+def deref_slack_channel(ctx: ActionContext, rid: SlackChannel):
+    return Bundle.generate(
+        rid=rid,
+        contents=slack_app.client.conversations_info(
+            channel=rid.channel_id
+        )["channel"]
+    )
 
-@effector.register_dereference(SlackWorkspace)
-def deref_slack_workspace(rid: SlackWorkspace):
-    return slack_app.client.team_info(
-        team=rid.team_id
-    )["team"]
+@node.effector.register_action(SlackWorkspace)
+def deref_slack_workspace(ctx: ActionContext, rid: SlackWorkspace):
+    return Bundle.generate(
+        rid=rid,
+        contents=slack_app.client.team_info(
+            team=rid.team_id
+        )["team"]
+    )
     
-@effector.register_dereference(Telescoped)
-def deref_telescoped(rid: Telescoped):
+@node.effector.register_action(Telescoped)
+def deref_telescoped(ctx: ActionContext, rid: Telescoped):
     msg: SlackMessage = rid.wrapped_rid
     p_msg = PersistentMessage(msg)
             
     if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
-        return None
+        return
     
-    message_data = effector.deref(msg).contents
-    channel_data = effector.deref(msg.channel).contents
-    team_data = effector.deref(msg.workspace).contents
-    author_data = effector.deref(p_msg.author).contents
-    tagger_data = effector.deref(p_msg.tagger).contents
+    message_data = ctx.effector.deref(msg).contents
+    channel_data = ctx.effector.deref(msg.channel).contents
+    team_data = ctx.effector.deref(msg.workspace).contents
+    author_data = ctx.effector.deref(p_msg.author).contents
+    tagger_data = ctx.effector.deref(p_msg.tagger).contents
     
     message_in_thread = msg.ts != message_data.get("thread_ts", msg.ts)
     edited_timestamp = message_data.get("edited", {}).get("ts")
@@ -111,15 +124,7 @@ def deref_telescoped(rid: Telescoped):
         "permalink": msg_url
     }
     
-    return msg_json
-
-
- # TRANSFORM   
-
-@effector.register("transform", SlackMessage)
-def transform_slack_message_to_url(rid: SlackMessage):
-    url_str = slack_app.client.chat_getPermalink(
-        channel=rid.channel_id,
-        message_ts=rid.ts
-    )["permalink"]
-    return RID.from_string(url_str)
+    return Bundle.generate(
+        rid=rid,
+        contents=msg_json
+    )

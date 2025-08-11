@@ -1,14 +1,13 @@
 import json, os
 from rid_lib.core import RID
 from rid_lib.types import SlackMessage, SlackUser, HTTPS
-from .config import PERSISTENT_DIR
 from .constants import UserStatus, MessageStatus
 from .utils import encode_b64, decode_b64
 
 
 class PersistentObject:
-    _directory = PERSISTENT_DIR
-    _instances = {}
+    _directory: str
+    _instances: dict = {}
     
     # ensures same RID results in same object
     def __new__(cls, rid: RID):

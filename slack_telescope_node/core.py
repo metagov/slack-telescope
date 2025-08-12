@@ -27,6 +27,7 @@ slack_app = App(
 slack_handler = SlackRequestHandler(slack_app)
 
 from . import effector_actions
+from . import knowledge_handlers
 
 @node.server.app.post("/slack-listener")
 async def slack_listener(request: Request):

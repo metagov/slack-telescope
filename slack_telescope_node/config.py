@@ -16,11 +16,13 @@ class SlackEnvConfig(EnvConfig):
     slack_app_token: str = "SLACK_APP_TOKEN"
 
 class TelescopeConfig(BaseModel):
+    backfill_file: str = "backfill.json"
     persistent_dir: str = "persistent"
-    telescope_emoji: str = "telescope"
+    emoji: str = "telescope"
     observatory_channel_id: str | None = None
     broadcast_channel_id: str | None = None
     text_preview_char_limit: int = 500
+    allowed_channels: list[str] = []
 
 class SlackTelescopeNodeConfig(NodeConfig):
     koi_net: KoiNetConfig = Field(default_factory = lambda:

@@ -134,7 +134,7 @@ def get_linked_message(request_interaction):
         
 
 def retrieve_all_rids(filter_accepted=False):
-    if not os.path.exists(PERSISTENT_DIR):
+    if not os.path.exists(PersistentObject._directory):
         return []
     
     rids = [
@@ -142,7 +142,7 @@ def retrieve_all_rids(filter_accepted=False):
             decode_b64(
                 fname.removesuffix(".json")
             )
-        ) for fname in os.listdir(PERSISTENT_DIR)
+        ) for fname in os.listdir(PersistentObject._directory)
     ]
     
     if not filter_accepted:

@@ -41,9 +41,9 @@ def handle_reaction_added(body, event):
             )
             
             # handle_update_message(p_msg.rid)
-            node.effector.deref(Telescoped(p_msg.rid))
+            node.effector.deref(Telescoped(p_msg.rid), refresh_cache=True)
     
-    elif emoji_str == node.config.telescope.telescope_emoji:
+    elif emoji_str == node.config.telescope.emoji:
         print("got a reaction")
         tagger = SlackUser(team_id, event["user"])
         author = SlackUser(team_id, event["item_user"])
@@ -83,7 +83,7 @@ def handle_reaction_removed(body, event):
                 )
             
             # handle_update_message(p_msg.rid)
-            node.effector.deref(Telescoped(p_msg.rid))
+            node.effector.deref(Telescoped(p_msg.rid), refresh_cache=True)
             
 
 @slack_app.event({
@@ -114,4 +114,4 @@ def handle_message_reply(event):
     )
     
     # handle_update_message(p_message.rid)
-    node.effector.deref(Telescoped(p_message.rid))
+    node.effector.deref(Telescoped(p_message.rid), refresh_cache=True)

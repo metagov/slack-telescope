@@ -69,7 +69,7 @@ def handle_retract_interaction(action_id, message):
                 )
             )
             
-            node.effector.deref(Telescoped(message))
+            node.effector.deref(Telescoped(message), refresh_cache=True)
             
             # handle_update_message(message)
         

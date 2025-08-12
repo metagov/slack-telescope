@@ -3,20 +3,16 @@ from slack_sdk.errors import SlackApiError
 from rid_lib.types import SlackMessage
 from rid_lib.ext import Bundle
 from slack_telescope_node.core import slack_app, node
-from slack_telescope_node.config import TELESCOPE_EMOJI
 
-
-filename = "backfill.json"
-allowed_channels = ['CMAQ0785R', 'CMQD2LKUN', 'CVCTS9A3H', 'C011L4P8AES', 'C0175M3GLSU', 'C0270BXSYUC', 'C02VBLPR98E', 'C03218BFP8T', 'C034GUA938W', 'C036D1Y3LP9', 'C0495H5B12A', 'C04FU2ZGTT9', 'C04P6EGUYA3', 'C051WCSHYES', 'C063KJC5BF0', 'C06DMGNV7E0', 'C06LAQNLVNK', 'C06QDUPDA59', 'C071P0C0477']
 
 try:
-    with open(filename, "r") as f:
+    with open(node.config.telescope.backfill_file, "r") as f:
         records = json.load(f)
 except (FileNotFoundError, json.decoder.JSONDecodeError):
     records = {}
 
 def write_records():
-    with open(filename, "w") as f:
+    with open(node.config.telescope.backfill_file, "w") as f:
         json.dump(records, f, indent=2)
 
 def auto_retry(function, **params):
@@ -46,7 +42,7 @@ def backfill():
     for channel in channels:
         channel_id = channel["id"]
         
-        if channel_id not in allowed_channels:
+        if channel_id not in node.config.telescope.allowed_channels:
             print("#" + channel["name"], "(skipping disallowed channels)")
             continue
         
@@ -107,7 +103,7 @@ def backfill():
             # check for telescope reaction   
             found_telescope = False
             for reaction in message.get("reactions", []):
-                if reaction["name"] == TELESCOPE_EMOJI:
+                if reaction["name"] == node.config.telescope.emoji:
                     found_telescope = True
                     break
             
@@ -160,7 +156,7 @@ def backfill():
                     # check for telescope reaction   
                     found_telescope = False
                     for reaction in threaded_message.get("reactions", []):
-                        if reaction["name"] == TELESCOPE_EMOJI:
+                        if reaction["name"] == node.config.telescope.emoji:
                             found_telescope = True
                             break
                     
@@ -186,6 +182,6 @@ def backfill():
 
 
 if __name__ == "__main__":
-    node.start()
+    node.lifecycle.start()
     backfill()
-    node.stop()
+    node.lifecycle.stop()

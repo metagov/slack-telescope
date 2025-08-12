@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from rid_lib import RID
 from rid_lib.types import SlackMessage
@@ -16,6 +17,8 @@ from .broadcast import create_broadcast
 from ..rid_types import Telescoped
 from ..core import node
 # from .message_handlers import handle_new_message
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=128)
@@ -42,7 +45,7 @@ def create_request_interaction(message, author, tagger):
     tagger_name = node.effector.deref(tagger).contents["real_name"]
     
     channel_data = node.effector.deref(message.channel).contents
-    print(f"New message <{message}> tagged in #{channel_data['name']} "
+    logger.debug(f"New message <{message}> tagged in #{channel_data['name']} "
         f"(author: {author_name}, tagger: {tagger_name})"
     )
     
@@ -50,7 +53,7 @@ def create_request_interaction(message, author, tagger):
         p_message.status = MessageStatus.UNREACHABLE
         
         create_slack_msg(observatory_channel, text=f"The <{p_message.permalink}|message you just tagged> is located in a private channel and cannot be observed.")
-        print("Message was unreachable")
+        logger.debug("Message was unreachable")
         return
     
     p_message.request_interaction = create_slack_msg(
@@ -65,9 +68,9 @@ def handle_request_interaction(action_id, message):
     p_user = PersistentUser(p_message.author)
     author = node.effector.deref(p_message.author).contents
     
-    print(f"Handling request interaction action: '{action_id}' for message <{message}>")
+    logger.debug(f"Handling request interaction action: '{action_id}' for message <{message}>")
     if action_id == ActionId.REQUEST:
-        print(f"User <{p_message.author}> status is: '{p_user.status}'")
+        logger.debug(f"User <{p_message.author}> status is: '{p_user.status}'")
         if p_user.status == UserStatus.UNSET:
             
             # bots can't consent, opt in by default
@@ -77,12 +80,12 @@ def handle_request_interaction(action_id, message):
                 create_consent_interaction(message)
             
         if p_user.status == UserStatus.PENDING:
-            print(f"Queued message <{message}>")
+            logger.info(f"Queued message <{message}>")
             p_user.enqueue(message)
             p_message.status = MessageStatus.REQUESTED
             
         elif p_user.status == UserStatus.OPT_IN:
-            print(f"Message <{message}> accepted")
+            logger.info(f"Message <{message}> accepted")
             p_message.status = MessageStatus.ACCEPTED
             create_retract_interaction(message)
             create_broadcast(message)
@@ -92,7 +95,7 @@ def handle_request_interaction(action_id, message):
             # handle_new_message(message)
             
         elif p_user.status == UserStatus.OPT_IN_ANON:
-            print(f"Message <{message}> accepted (anonymous)")
+            logger.info(f"Message <{message}> accepted (anonymous)")
             p_message.status = MessageStatus.ACCEPTED_ANON
             create_retract_interaction(message)
             create_broadcast(message)
@@ -102,7 +105,7 @@ def handle_request_interaction(action_id, message):
             # handle_new_message(message)
              
         elif p_user.status == UserStatus.OPT_OUT:
-            print(f"Message <{message}> rejected")
+            logger.info(f"Message <{message}> rejected")
             p_message.status = MessageStatus.REJECTED
         
         update_slack_msg(
@@ -111,7 +114,7 @@ def handle_request_interaction(action_id, message):
         )
     
     elif action_id == ActionId.IGNORE:
-        print(f"Message <{message}> ignored")
+        logger.info(f"Message <{message}> ignored")
         p_message.status = MessageStatus.IGNORED
         
         update_slack_msg(
@@ -120,7 +123,7 @@ def handle_request_interaction(action_id, message):
         )
             
     elif action_id == ActionId.UNDO_IGNORE:
-        print(f"Message <{message}> unignored")
+        logger.info(f"Message <{message}> unignored")
         p_message.status = MessageStatus.TAGGED
         
         update_slack_msg(

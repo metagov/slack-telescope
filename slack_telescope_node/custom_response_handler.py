@@ -29,7 +29,6 @@ class TelescopeResponseHandler:
         cache: Cache, 
         effector: Effector,
     ):
-        print("initialized custom response handler")
         self.cache = cache
         self.effector = effector
         

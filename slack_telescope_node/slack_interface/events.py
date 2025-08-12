@@ -1,3 +1,4 @@
+import logging
 from rid_lib.types import SlackMessage, SlackUser
 from slack_telescope_node.core import slack_app, bot_user
 from slack_telescope_node import orchestrator
@@ -6,6 +7,9 @@ from slack_telescope_node.constants import MessageStatus
 from slack_telescope_node.rid_types import Telescoped
 # from slack_telescope_node.orchestrator.message_handlers import handle_update_message
 from ..core import node
+
+logger = logging.getLogger(__name__)
+
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(body, event):        
@@ -28,7 +32,7 @@ def handle_reaction_added(body, event):
         original_message = get_linked_message(tagged_msg)
         if original_message is None: return
         
-        print(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
+        logger.debug(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
         p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             p_msg.add_emoji(emoji_str)
@@ -44,7 +48,7 @@ def handle_reaction_added(body, event):
             node.effector.deref(Telescoped(p_msg.rid), refresh_cache=True)
     
     elif emoji_str == node.config.telescope.emoji:
-        print("got a reaction")
+        logger.debug("got a reaction")
         tagger = SlackUser(team_id, event["user"])
         author = SlackUser(team_id, event["item_user"])
             
@@ -69,7 +73,7 @@ def handle_reaction_removed(body, event):
         original_message = get_linked_message(tagged_msg)
         if original_message is None: return
         
-        print(f"Removing '{emoji_str}' emoji from <{tagged_msg}>")
+        logger.debug(f"Removing '{emoji_str}' emoji from <{tagged_msg}>")
         p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             num_reactions = p_msg.remove_emoji(emoji_str)

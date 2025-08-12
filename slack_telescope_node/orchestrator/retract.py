@@ -1,3 +1,4 @@
+import logging
 from koi_net.protocol.event import EventType
 # from slack_telescope_node.core import graph
 # from slack_telescope_node.config import GRAPH_ENABLED
@@ -16,6 +17,8 @@ from slack_telescope_node import message_content
 from .broadcast import delete_broadcast
 # from .message_handlers import handle_forget_message, handle_update_message
 from ..core import node
+
+logger = logging.getLogger(__name__)
 
 
 def create_retract_interaction(message):
@@ -39,7 +42,7 @@ def handle_retract_interaction(action_id, message):
     
     if not retraction_time_elapsed(p_message):
         if action_id == ActionId.RETRACT:
-            print(f"Message <{message}> retracted")
+            logger.info(f"Message <{message}> retracted")
             p_message.status = MessageStatus.RETRACTED
         
             # if GRAPH_ENABLED:
@@ -59,7 +62,7 @@ def handle_retract_interaction(action_id, message):
             # handle_forget_message(message)
         
         elif action_id == ActionId.ANONYMIZE:
-            print(f"Message <{message}> anonymized")
+            logger.info(f"Message <{message}> anonymized")
             p_message.status = MessageStatus.ACCEPTED_ANON
 
             update_slack_msg(
@@ -76,7 +79,7 @@ def handle_retract_interaction(action_id, message):
         update_slack_msg(p_message.request_interaction, end_request_interaction_blocks(message))
                         
     else:
-        print(f"Message <{message}> could not be retracted")
+        logger.info(f"Message <{message}> could not be retracted")
         update_slack_msg(
             p_message.retract_interaction, 
             end_retract_interaction_blocks(

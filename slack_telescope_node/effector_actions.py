@@ -1,3 +1,4 @@
+import logging
 from slack_sdk.errors import SlackApiError
 from rid_lib.ext import Bundle
 from rid_lib.types import SlackMessage, SlackUser, SlackChannel, SlackWorkspace
@@ -7,6 +8,8 @@ from .rid_types import Telescoped
 from .persistent import PersistentMessage
 from .constants import MessageStatus
 from . import utils
+
+logger = logging.getLogger(__name__)
 
 
 # DEREFERENCE
@@ -27,7 +30,7 @@ def deref_slack_message(ctx: ActionContext, rid: SlackMessage):
             return func(*args, **kwargs)
         except SlackApiError as err:
             if err.response["error"] == "not_in_channel":
-                print("joining channel", rid.channel_id)
+                logger.debug(f"joining channel {rid.channel_id}")
                 slack_app.client.conversations_join(
                     channel=rid.channel_id
                 )

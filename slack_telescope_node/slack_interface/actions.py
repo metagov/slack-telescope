@@ -1,7 +1,7 @@
 from rid_lib.core import RID
-from app.core import slack_app
-from app.constants import BlockId
-from app import orchestrator, utils
+from slack_telescope_node.core import slack_app
+from slack_telescope_node.constants import BlockId
+from slack_telescope_node import orchestrator, utils
 
 
 @slack_app.action({"block_id": BlockId.REQUEST})

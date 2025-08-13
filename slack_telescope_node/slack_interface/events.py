@@ -1,10 +1,15 @@
+import logging
 from rid_lib.types import SlackMessage, SlackUser
-from app.core import slack_app, bot_user
-from app.config import TELESCOPE_EMOJI, OBSERVATORY_CHANNEL_ID
-from app import orchestrator
-from app.persistent import PersistentMessage, get_linked_message
-from app.constants import MessageStatus
-from app.orchestrator.message_handlers import handle_update_message
+from slack_telescope_node.core import slack_app, bot_user
+from slack_telescope_node import orchestrator
+from slack_telescope_node.persistent import PersistentMessage, get_linked_message
+from slack_telescope_node.constants import MessageStatus
+from slack_telescope_node.rid_types import Telescoped
+# from slack_telescope_node.orchestrator.message_handlers import handle_update_message
+from ..core import node
+
+logger = logging.getLogger(__name__)
+
 
 @slack_app.event("reaction_added")
 def handle_reaction_added(body, event):        
@@ -21,13 +26,13 @@ def handle_reaction_added(body, event):
     
     if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
-        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID:
+        if tagged_msg.channel_id != node.config.telescope.observatory_channel_id:
             return
         
         original_message = get_linked_message(tagged_msg)
         if original_message is None: return
         
-        print(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
+        logger.debug(f"Adding '{emoji_str}' emoji to <{tagged_msg}>")
         p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             p_msg.add_emoji(emoji_str)
@@ -39,9 +44,11 @@ def handle_reaction_added(body, event):
                 name=emoji_str
             )
             
-            handle_update_message(p_msg.rid)
+            # handle_update_message(p_msg.rid)
+            node.effector.deref(Telescoped(p_msg.rid), refresh_cache=True)
     
-    elif emoji_str == TELESCOPE_EMOJI:
+    elif emoji_str == node.config.telescope.emoji:
+        logger.debug("got a reaction")
         tagger = SlackUser(team_id, event["user"])
         author = SlackUser(team_id, event["item_user"])
             
@@ -61,12 +68,12 @@ def handle_reaction_removed(body, event):
 
     if event["item_user"] == bot_user.user_id:
         # only handle reqactions to interactions in the observatory
-        if tagged_msg.channel_id != OBSERVATORY_CHANNEL_ID: return
+        if tagged_msg.channel_id != node.config.telescope.observatory_channel_id: return
         
         original_message = get_linked_message(tagged_msg)
         if original_message is None: return
         
-        print(f"Removing '{emoji_str}' emoji from <{tagged_msg}>")
+        logger.debug(f"Removing '{emoji_str}' emoji from <{tagged_msg}>")
         p_msg = PersistentMessage(original_message)
         if p_msg.status != MessageStatus.UNSET:
             num_reactions = p_msg.remove_emoji(emoji_str)
@@ -79,12 +86,13 @@ def handle_reaction_removed(body, event):
                     name=emoji_str
                 )
             
-            handle_update_message(p_msg.rid)
+            # handle_update_message(p_msg.rid)
+            node.effector.deref(Telescoped(p_msg.rid), refresh_cache=True)
             
 
 @slack_app.event({
     "type": "message",
-    "channel": OBSERVATORY_CHANNEL_ID
+    "channel": node.config.telescope.observatory_channel_id
 })
 def handle_message_reply(event):
     # only handle replies to bot message
@@ -109,5 +117,5 @@ def handle_message_reply(event):
         name="thumbsup"
     )
     
-    handle_update_message(p_message.rid)
-    
+    # handle_update_message(p_message.rid)
+    node.effector.deref(Telescoped(p_message.rid), refresh_cache=True)

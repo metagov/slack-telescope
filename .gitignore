@@ -6,3 +6,7 @@ persistent
 export
 *.json
 debug
+OLD_*
+priv_key.pem
+config.yaml
+zold/

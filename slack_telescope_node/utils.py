@@ -28,10 +28,8 @@ def normalize_legacy_prefix(rid_string: str):
 def rid_params(rid: RID):
     return {
         "scheme": rid.scheme,
-        "space": rid.space,
-        "form": rid.form,
-        "obj_type": rid.obj_type,
-        "context": rid.context
+        "type": str(type(rid)),
+        "reference": str(rid.reference)
     }
     
 def format_timestamp(ts):

@@ -1,8 +1,8 @@
 from rid_lib.types import SlackMessage
-from app.core import broadcast_channel
-from app.persistent import PersistentMessage
-from app.slack_interface.functions import create_slack_msg, delete_slack_msg
-from app.slack_interface.composed import broadcast_interaction_blocks
+from slack_telescope_node.core import broadcast_channel
+from slack_telescope_node.persistent import PersistentMessage
+from slack_telescope_node.slack_interface.functions import create_slack_msg, delete_slack_msg
+from slack_telescope_node.slack_interface.composed import broadcast_interaction_blocks
 
 
 def create_broadcast(message):

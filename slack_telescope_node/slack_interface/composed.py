@@ -1,5 +1,5 @@
 from .components import *
-from app import message_content
+from slack_telescope_node import message_content
 
 # REQUEST INTERACTION
 

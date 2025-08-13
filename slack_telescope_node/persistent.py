@@ -1,14 +1,13 @@
 import json, os
 from rid_lib.core import RID
 from rid_lib.types import SlackMessage, SlackUser, HTTPS
-from .config import PERSISTENT_DIR
 from .constants import UserStatus, MessageStatus
 from .utils import encode_b64, decode_b64
 
 
 class PersistentObject:
-    _directory = PERSISTENT_DIR
-    _instances = {}
+    _directory: str
+    _instances: dict = {}
     
     # ensures same RID results in same object
     def __new__(cls, rid: RID):
@@ -135,7 +134,7 @@ def get_linked_message(request_interaction):
         
 
 def retrieve_all_rids(filter_accepted=False):
-    if not os.path.exists(PERSISTENT_DIR):
+    if not os.path.exists(PersistentObject._directory):
         return []
     
     rids = [
@@ -143,7 +142,7 @@ def retrieve_all_rids(filter_accepted=False):
             decode_b64(
                 fname.removesuffix(".json")
             )
-        ) for fname in os.listdir(PERSISTENT_DIR)
+        ) for fname in os.listdir(PersistentObject._directory)
     ]
     
     if not filter_accepted:

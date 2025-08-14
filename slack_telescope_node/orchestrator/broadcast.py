@@ -16,4 +16,4 @@ def create_broadcast(message):
 def delete_broadcast(message: SlackMessage):
     p_message = PersistentMessage(message)
     
-    delete_slack_msg(p_message.broadcast_interaction)
+    delete_slack_msg(p_message.broadcast_interaction, alt_text="_This message has been retracted._")

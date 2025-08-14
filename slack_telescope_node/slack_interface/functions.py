@@ -1,4 +1,4 @@
-from rid_lib import RID
+from slack_sdk.errors import SlackApiError
 from rid_lib.types import SlackChannel, SlackUser, SlackMessage
 from slack_telescope_node.core import slack_app
 
@@ -29,8 +29,14 @@ def update_slack_msg(msg: SlackMessage, blocks=None, text=None):
         blocks=blocks
     )
     
-def delete_slack_msg(msg: SlackMessage):
-    slack_app.client.chat_delete(
-        channel=msg.channel_id,
-        ts=msg.ts
-    )
+def delete_slack_msg(msg: SlackMessage, alt_text=None):
+    try:
+        slack_app.client.chat_delete(
+            channel=msg.channel_id,
+            ts=msg.ts
+        )
+    except SlackApiError as err:
+        if err.response["error"] == "cant_delete_message":
+            update_slack_msg(msg, blocks=[], text=alt_text or "_This message has been deleted._")
+        else:
+            raise err

@@ -1,7 +1,7 @@
 import logging
 from functools import lru_cache
 from rid_lib import RID
-from rid_lib.types import SlackMessage
+from rid_lib.types import SlackMessage, SlackUser
 from ..core import node, slack_app, observatory_channel
 from ..persistent import PersistentMessage, PersistentUser, create_link
 from ..constants import MessageStatus, UserStatus, ActionId
@@ -29,7 +29,11 @@ def slack_message_rid_to_url(rid: SlackMessage):
     )["permalink"]
     return RID.from_string(url_str)
 
-def create_request_interaction(message, author, tagger):    
+def create_request_interaction(
+    message: SlackMessage, 
+    author: SlackUser, 
+    tagger: SlackUser
+):    
     p_message = PersistentMessage(message)
     
     # message previously been tagged and handled   
@@ -41,8 +45,10 @@ def create_request_interaction(message, author, tagger):
     p_message.tagger = tagger
     p_message.permalink = slack_message_rid_to_url(message)
     
-    author_name = node.effector.deref(author).contents["real_name"]
-    tagger_name = node.effector.deref(tagger).contents["real_name"]
+    author_data = node.effector.deref(author).contents
+    author_name = author_data.get("real_name", f"<{author.user_id}>")
+    tagger_name = node.effector.deref(tagger).contents.get(
+        "real_name", f"<{tagger.user_id}>")
     
     channel_data = node.effector.deref(message.channel).contents
     logger.debug(f"New message <{message}> tagged in #{channel_data['name']} "
@@ -54,6 +60,13 @@ def create_request_interaction(message, author, tagger):
         
         create_slack_msg(observatory_channel, text=f"The <{p_message.permalink}|message you just tagged> is located in a private channel and cannot be observed.")
         logger.debug("Message was unreachable")
+        return
+    
+    if author_data["deleted"] == True:
+        p_message.status = MessageStatus.UNREACHABLE
+        
+        create_slack_msg(observatory_channel, text=f"The <{p_message.permalink}|message you just tagged> was authored by the deactivated account <@{author.user_id}> and cannot give consent.")
+        logger.debug("Message was authored by deleted user")
         return
     
     p_message.request_interaction = create_slack_msg(

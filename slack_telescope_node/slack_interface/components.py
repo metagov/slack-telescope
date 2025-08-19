@@ -38,7 +38,8 @@ def format_text(message):
 
 def build_msg_context_row(message):
     p_message = PersistentMessage(message)
-    author_name = node.effector.deref(p_message.author).contents["real_name"]
+    author_name = node.effector.deref(p_message.author).contents.get(
+        "real_name", f"<{p_message.author.user_id}>")
     
     timestamp = message.ts.split(".")[0]
         
@@ -49,8 +50,10 @@ def build_msg_context_row(message):
         )
     ])
 
-def build_request_msg_ref(message): 
-    tagger_name = node.effector.deref(PersistentMessage(message).tagger).contents["real_name"]
+def build_request_msg_ref(message):
+    p_message = PersistentMessage(message)
+    tagger_name = node.effector.deref(p_message.tagger).contents.get(
+        "real_name", f"<{p_message.tagger.user_id}>")
        
     return section_block(
         text_obj(f"Tagged by *{tagger_name}*\n{format_text(message)}", type="mrkdwn")

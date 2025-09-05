@@ -1,10 +1,10 @@
 import logging
 from rid_lib.types import SlackMessage, SlackUser
-from slack_telescope_node.core import slack_app, bot_user
-from slack_telescope_node import orchestrator
-from slack_telescope_node.persistent import PersistentMessage, get_linked_message
-from slack_telescope_node.constants import MessageStatus
-from slack_telescope_node.rid_types import Telescoped
+from koi_net_slack_telescope_node.core import slack_app, bot_user
+from koi_net_slack_telescope_node import orchestrator
+from koi_net_slack_telescope_node.persistent import PersistentMessage, get_linked_message
+from koi_net_slack_telescope_node.constants import MessageStatus
+from koi_net_slack_telescope_node.rid_types import Telescoped
 # from slack_telescope_node.orchestrator.message_handlers import handle_update_message
 from ..core import node
 

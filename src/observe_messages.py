@@ -2,7 +2,7 @@ import time, json
 from slack_sdk.errors import SlackApiError
 from rid_lib.types import SlackMessage
 from rid_lib.ext import Bundle
-from slack_telescope_node.core import slack_app, node
+from koi_net_slack_telescope_node.core import slack_app, node
 
 
 try:

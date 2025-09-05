@@ -4,7 +4,6 @@ from fastapi import Request
 from rid_lib.types import SlackChannel, SlackUser
 from koi_net import NodeInterface
 from .config import SlackTelescopeNodeConfig
-from .graph import GraphInterface
 from .persistent import PersistentObject
 from .custom_response_handler import TelescopeResponseHandler
 
@@ -33,11 +32,6 @@ from . import knowledge_handlers
 async def slack_listener(request: Request):
     return await slack_handler.handle(request)
 
-
-# if GRAPH_ENABLED:
-#     graph = GraphInterface(NEO4J_URI, NEO4J_AUTH, NEO4J_DB)
-# else:
-#     graph = None
 
 resp = slack_app.client.auth_test()
 team_id = resp["team_id"]

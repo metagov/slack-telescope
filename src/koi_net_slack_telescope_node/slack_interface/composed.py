@@ -1,5 +1,5 @@
 from .components import *
-from slack_telescope_node import message_content
+from koi_net_slack_telescope_node import message_content
 
 # REQUEST INTERACTION
 

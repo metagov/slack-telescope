@@ -1,12 +1,12 @@
 import logging
-from slack_telescope_node.persistent import PersistentMessage, PersistentUser
-from slack_telescope_node.constants import MessageStatus, UserStatus, ActionId
-from slack_telescope_node.slack_interface.functions import (
+from koi_net_slack_telescope_node.persistent import PersistentMessage, PersistentUser
+from koi_net_slack_telescope_node.constants import MessageStatus, UserStatus, ActionId
+from koi_net_slack_telescope_node.slack_interface.functions import (
     create_slack_msg,
     update_slack_msg, 
     delete_slack_msg
 )
-from slack_telescope_node.slack_interface.composed import (
+from koi_net_slack_telescope_node.slack_interface.composed import (
     consent_welcome_msg_blocks,
     consent_interaction_blocks,
     end_request_interaction_blocks

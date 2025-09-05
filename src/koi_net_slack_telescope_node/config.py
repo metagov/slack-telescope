@@ -50,12 +50,4 @@ class SlackTelescopeNodeConfig(NodeConfig):
 #     BROADCAST_CHANNEL_ID = "C07T2G11363"
 
 
-GRAPH_ENABLED = False
-
-
-NEO4J_URI = "bolt://localhost:7687"
-NEO4J_AUTH = ("neo4j", "telescope")
-NEO4J_DB = "neo4j"
-
-
 RETRACTION_TIME_LIMIT = timedelta(weeks=4)

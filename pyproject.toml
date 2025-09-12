@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "koi-net-slack-telescope-node"
+version = "1.0.0"
+description = "Implementation of KOI-net Slack Telescope node in Python"
+authors = [
+    {name = "Luke Miller", email = "luke@block.science"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+dependencies = [
+    "koi-net>=1.1.0b7",
+    "fastapi>=0.115.12",
+    "uvicorn>=0.34.2",
+    "rich>=14.0.0",
+    "slack_bolt>=1.23.0"
+]
+
+[project.optional-dependencies]
+dev = ["twine>=6.0", "build"]
+
+[project.urls]
+Homepage = "https://github.com/BlockScience/koi-net-coordinator-node/"

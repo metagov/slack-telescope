@@ -55,13 +55,17 @@ def create_request_interaction(
         f"(author: {author_name}, tagger: {tagger_name})"
     )
     
-    if channel_data["is_private"] == True:
-        p_message.status = MessageStatus.UNREACHABLE
-        
-        create_slack_msg(observatory_channel, text=f"The <{p_message.permalink}|message you just tagged> is located in a private channel and cannot be observed.")
-        logger.debug("Message was unreachable")
+    if message.channel.channel_id not in node.config.telescope.allowed_channels:
+        logger.debug("message not sent in allowed channel, ignoring")
         return
     
+    if channel_data["is_archived"] == True:    
+        p_message.status = MessageStatus.UNREACHABLE
+        
+        create_slack_msg(observatory_channel, text=f"The <{p_message.permalink}|message you just tagged> is located in an archived channel and cannot be observed.")
+        logger.debug("Message was unreachable")
+        return
+        
     if author_data["deleted"] == True:
         p_message.status = MessageStatus.UNREACHABLE
         

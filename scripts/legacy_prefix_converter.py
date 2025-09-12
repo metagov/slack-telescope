@@ -1,5 +1,5 @@
 import os, shutil
-from slack_telescope_node.utils import decode_b64, encode_b64
+from koi_net_slack_telescope_node.utils import decode_b64, encode_b64
 
 shutil.copytree("persistent", "persistent_backup")
 

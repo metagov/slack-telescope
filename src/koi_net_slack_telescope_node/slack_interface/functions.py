@@ -1,6 +1,6 @@
 from slack_sdk.errors import SlackApiError
 from rid_lib.types import SlackChannel, SlackUser, SlackMessage
-from slack_telescope_node.core import slack_app
+from koi_net_slack_telescope_node.core import slack_app
 
 def create_slack_msg(channel: SlackChannel | SlackUser, blocks=None, text=None):
     if isinstance(channel, SlackChannel):

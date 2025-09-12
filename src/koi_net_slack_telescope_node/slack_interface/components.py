@@ -1,9 +1,9 @@
 import re
 from rid_lib.types import SlackUser
-from slack_telescope_node.constants import ActionId, BlockId, request_status_display
-from slack_telescope_node.persistent import PersistentMessage
-from slack_telescope_node.core import team_id, node
-from slack_telescope_node import message_content
+from koi_net_slack_telescope_node.constants import ActionId, BlockId, request_status_display
+from koi_net_slack_telescope_node.persistent import PersistentMessage
+from koi_net_slack_telescope_node.core import team_id, node
+from koi_net_slack_telescope_node import message_content
 from .blocks import *
 
 

@@ -1,7 +1,7 @@
 from rid_lib.core import RID
 from rid_lib.types import SlackUser
-from slack_telescope_node import orchestrator
-from slack_telescope_node.core import node
+from koi_net_slack_telescope_node import orchestrator
+from koi_net_slack_telescope_node.core import node
 import json, time
 
 def dispatch_messages():

@@ -1,28 +1,37 @@
-from koi_net_slack_telescope_node.core import slack_app
-from koi_net_slack_telescope_node.config import DEBUG
-from koi_net_slack_telescope_node.export import export_msgs_to_csv
+from dataclasses import dataclass
+
+from slack_bolt import App
+from ..export import export_msgs_to_csv
 
 
-@slack_app.command("/export_csv(dev)" if DEBUG else "/export_csv")
-def handle_export_command(ack, command, say):
-    ack()
+@dataclass
+class SlackCommandHandler:
+    slack_app: App
     
-    slack_app.client.chat_postMessage(
-        channel=command["channel_id"],
-        text="Beginning export... (this might take a few moments!)"
-    )
+    def __post_init__(self):
+        self.register_handlers()
     
-    filename = export_msgs_to_csv()
-        
-    slack_app.client.files_upload_v2(
-        file=filename,
-        filename="export.csv",
-        channel=command["channel_id"],
-        initial_comment="Exported data."
-    )
-    
-@slack_app.command("/ping")
-def handle_ping_command(ack, say):
-    ack()
-    
-    say(text="Pong!")
+    def register_handlers(self):
+        @self.slack_app.command("/export_csv")
+        def handle_export_command(ack, command, say):
+            ack()
+            
+            self.slack_app.client.chat_postMessage(
+                channel=command["channel_id"],
+                text="Beginning export... (this might take a few moments!)"
+            )
+            
+            filename = export_msgs_to_csv()
+                
+            self.slack_app.client.files_upload_v2(
+                file=filename,
+                filename="export.csv",
+                channel=command["channel_id"],
+                initial_comment="Exported data."
+            )
+            
+        @self.slack_app.command("/ping")
+        def handle_ping_command(ack, say):
+            ack()
+            
+            say(text="Pong!")

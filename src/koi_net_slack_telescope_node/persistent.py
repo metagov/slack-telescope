@@ -1,7 +1,7 @@
 import json, os
 from rid_lib.core import RID
 from rid_lib.types import SlackMessage, SlackUser, HTTPS
-from .constants import UserStatus, MessageStatus
+from .consts import UserStatus, MessageStatus
 from .utils import encode_b64, decode_b64
 
 

@@ -1,12 +1,14 @@
 import logging
+
+from koi_net.effector import DerefHandler
 from slack_sdk.errors import SlackApiError
 from rid_lib.ext import Bundle
 from rid_lib.types import SlackMessage, SlackUser, SlackChannel, SlackWorkspace
-from koi_net.context import ActionContext
-from .core import node, slack_app
+
+from .extended_handler_context import ExtendedHandlerContext
 from .rid_types import Telescoped
 from .persistent import PersistentMessage
-from .constants import MessageStatus
+from .consts import MessageStatus
 from . import utils
 
 logger = logging.getLogger(__name__)
@@ -14,24 +16,24 @@ logger = logging.getLogger(__name__)
 
 # DEREFERENCE
 
-@node.effector.register_action(SlackUser)
-def deref_slack_user(ctx: ActionContext, rid: SlackUser):
+@DerefHandler.create(rid_types=[SlackUser])
+def deref_slack_user(ctx: ExtendedHandlerContext, rid: SlackUser):
     return Bundle.generate(
         rid=rid,
-        contents=slack_app.client.users_info(
+        contents=ctx.slack_app.client.users_info(
             user=rid.user_id
         )["user"]
     )
 
-@node.effector.register_action(SlackMessage)
-def deref_slack_message(ctx: ActionContext, rid: SlackMessage):
+@DerefHandler.create(rid_types=[SlackMessage])
+def deref_slack_message(ctx: ExtendedHandlerContext, rid: SlackMessage):
     def join_and_retry_on_err(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
         except SlackApiError as err:
             if err.response["error"] == "not_in_channel":
                 logger.debug(f"joining channel {rid.channel_id}")
-                slack_app.client.conversations_join(
+                ctx.slack_app.client.conversations_join(
                     channel=rid.channel_id
                 )
                 return func(*args, **kwargs)
@@ -41,33 +43,33 @@ def deref_slack_message(ctx: ActionContext, rid: SlackMessage):
     return Bundle.generate(
         rid=rid,
         contents=join_and_retry_on_err(
-            func=slack_app.client.conversations_replies,
+            func=ctx.slack_app.client.conversations_replies,
             channel=rid.channel_id,
             ts=rid.ts,
             limit=1
         )["messages"][0]
     )
 
-@node.effector.register_action(SlackChannel)
-def deref_slack_channel(ctx: ActionContext, rid: SlackChannel):
+@DerefHandler.create(rid_types=[SlackChannel])
+def deref_slack_channel(ctx: ExtendedHandlerContext, rid: SlackChannel):
     return Bundle.generate(
         rid=rid,
-        contents=slack_app.client.conversations_info(
+        contents=ctx.slack_app.client.conversations_info(
             channel=rid.channel_id
         )["channel"]
     )
 
-@node.effector.register_action(SlackWorkspace)
-def deref_slack_workspace(ctx: ActionContext, rid: SlackWorkspace):
+@DerefHandler.create(rid_types=[SlackWorkspace])
+def deref_slack_workspace(ctx: ExtendedHandlerContext, rid: SlackWorkspace):
     return Bundle.generate(
         rid=rid,
-        contents=slack_app.client.team_info(
+        contents=ctx.slack_app.client.team_info(
             team=rid.team_id
         )["team"]
     )
     
-@node.effector.register_action(Telescoped)
-def deref_telescoped(ctx: ActionContext, rid: Telescoped):
+@DerefHandler.create(rid_types=[Telescoped])
+def deref_telescoped(ctx: ExtendedHandlerContext, rid: Telescoped):
     msg: SlackMessage = rid.wrapped_rid
     p_msg = PersistentMessage(msg)
             

@@ -1,51 +1,59 @@
+from koi_net.core import FullNode
 from slack_bolt import App
-from slack_bolt.adapter.fastapi import SlackRequestHandler
-from fastapi import Request
-from rid_lib.types import SlackChannel, SlackUser
-from koi_net import NodeInterface
+
+from .effector_actions import (
+    deref_slack_channel, 
+    deref_slack_message,
+    deref_slack_user,
+    deref_slack_workspace,
+    deref_telescoped)
+from .extended_handler_context import ExtendedHandlerContext
+from .knowledge_handlers import trust_only_first_contact
+from .slack_interface.block_builder import BlockBuilder
+from .meta_config_handler import MetaConfigHandler
+from .slack_interface.functions import SlackFunctions
+from .server import SlackTelescopeNodeServer
 from .config import SlackTelescopeNodeConfig
+from .response_handler import TelescopeResponseHandler
+from .slack_interface.actions import SlackActionHandler
+from .slack_interface.commands import SlackCommandHandler
+
+
+# ---
+
+from rid_lib.types import SlackChannel, SlackUser
 from .persistent import PersistentObject
-from .custom_response_handler import TelescopeResponseHandler
-
-node = NodeInterface(
-    config=SlackTelescopeNodeConfig.load_from_yaml("config.yaml"),
-    use_kobj_processor_thread=True,
-    ResponseHandlerOverride=TelescopeResponseHandler
-)
-
-node.response_handler
-
-PersistentObject._directory = node.config.telescope.persistent_dir
-
-slack_app = App(
-    token=node.config.env.slack_bot_token,
-    signing_secret=node.config.env.slack_signing_secret,
-    raise_error_for_unhandled_request=False
-)
-
-slack_handler = SlackRequestHandler(slack_app)
-
-from . import effector_actions
-from . import knowledge_handlers
-
-@node.server.app.post("/slack-listener")
-async def slack_listener(request: Request):
-    return await slack_handler.handle(request)
 
 
-resp = slack_app.client.auth_test()
-team_id = resp["team_id"]
+class SlackTelescopeNode(FullNode):
+    config_schema = SlackTelescopeNodeConfig
+    response_handler = TelescopeResponseHandler
+    server = SlackTelescopeNodeServer
+    handler_context = ExtendedHandlerContext
+    
+    slack_app = lambda config: App(
+        token=config.env.slack_bot_token,
+        signing_secret=config.env.slack_signing_secret,
+        raise_error_for_unhandled_request=False
+    )
+    slack_action_handler = SlackActionHandler
+    slack_command_handler = SlackCommandHandler
+    slack_functions = SlackFunctions
+    
+    meta_config_handler = MetaConfigHandler
+    block_builder = BlockBuilder
+    
+    knowledge_handlers = FullNode.knowledge_handlers + [trust_only_first_contact]
+    
+    deref_handlers = [
+        deref_slack_user,
+        deref_slack_message,
+        deref_slack_channel,
+        deref_slack_workspace,
+        deref_telescoped
+    ]
 
-bot_user = SlackUser(team_id, resp["user_id"])
 
-observatory_channel = SlackChannel(
-    team_id=team_id, 
-    channel_id=node.config.telescope.observatory_channel_id)
+# PersistentObject._directory = node.config.telescope.persistent_dir
 
-broadcast_channel = SlackChannel(
-    team_id=team_id, 
-    channel_id=node.config.telescope.broadcast_channel_id
-)
 
-# registers handlers/listeners with Slack
-from .slack_interface import actions, events, commands

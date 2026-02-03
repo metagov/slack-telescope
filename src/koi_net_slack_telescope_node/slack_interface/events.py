@@ -5,24 +5,25 @@ from koi_net.effector import Effector
 from rid_lib.types import SlackMessage, SlackUser
 from slack_bolt import App
 
-from .. import orchestrator
 from ..config import SlackTelescopeNodeConfig
 from ..persistent import PersistentMessage, get_linked_message
 from ..consts import MessageStatus
 from ..rid_types import Telescoped
+from ..orchestrator import Orchestrator
 # from ..orchestrator.message_handlers import handle_update_message
 
 
 @dataclass
 class SlackEventHandler:
+    log: Logger
     slack_app: App
     config: SlackTelescopeNodeConfig
-    log: Logger
     effector: Effector
+    orchestrator: Orchestrator
     
     def register_handlers(self):
         @self.slack_app.event("reaction_added")
-        def handle_reaction_added(body, event):        
+        def handle_reaction_added(body, event):
             if event["item"]["type"] != "message":
                 return
             
@@ -62,7 +63,7 @@ class SlackEventHandler:
                 tagger = SlackUser(team_id, event["user"])
                 author = SlackUser(team_id, event["item_user"])
                     
-                orchestrator.create_request_interaction(tagged_msg, author, tagger)
+                self.orchestrator.create_request_interaction(tagged_msg, author, tagger)
                 
         @self.slack_app.event("reaction_removed")
         def handle_reaction_removed(body, event):

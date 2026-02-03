@@ -7,8 +7,8 @@ from .effector_actions import (
     deref_slack_user,
     deref_slack_workspace,
     deref_telescoped)
-from .extended_handler_context import ExtendedHandlerContext
 from .knowledge_handlers import trust_only_first_contact
+from .extended_handler_context import ExtendedHandlerContext
 from .slack_interface.block_builder import BlockBuilder
 from .meta_config_handler import MetaConfigHandler
 from .slack_interface.functions import SlackFunctions
@@ -17,12 +17,7 @@ from .config import SlackTelescopeNodeConfig
 from .response_handler import TelescopeResponseHandler
 from .slack_interface.actions import SlackActionHandler
 from .slack_interface.commands import SlackCommandHandler
-
-
-# ---
-
-from rid_lib.types import SlackChannel, SlackUser
-from .persistent import PersistentObject
+from .export import Exporter
 
 
 class SlackTelescopeNode(FullNode):
@@ -42,9 +37,11 @@ class SlackTelescopeNode(FullNode):
     
     meta_config_handler = MetaConfigHandler
     block_builder = BlockBuilder
+    exporter = Exporter
     
-    knowledge_handlers = FullNode.knowledge_handlers + [trust_only_first_contact]
-    
+    knowledge_handlers = FullNode.knowledge_handlers + [
+        trust_only_first_contact
+    ]
     deref_handlers = [
         deref_slack_user,
         deref_slack_message,
@@ -52,8 +49,3 @@ class SlackTelescopeNode(FullNode):
         deref_slack_workspace,
         deref_telescoped
     ]
-
-
-# PersistentObject._directory = node.config.telescope.persistent_dir
-
-

@@ -72,7 +72,7 @@ def deref_slack_workspace(ctx: ExtendedHandlerContext, rid: SlackWorkspace):
 def deref_telescoped(ctx: ExtendedHandlerContext, rid: Telescoped):
     msg: SlackMessage = rid.wrapped_rid
     p_msg = PersistentMessage(msg)
-            
+    
     if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
         return
     

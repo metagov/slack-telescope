@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 
 from slack_bolt import App
-from ..export import export_msgs_to_csv
+from ..export import Exporter
 
 
 @dataclass
 class SlackCommandHandler:
     slack_app: App
+    exporter: Exporter
     
     def __post_init__(self):
         self.register_handlers()
@@ -21,7 +22,7 @@ class SlackCommandHandler:
                 text="Beginning export... (this might take a few moments!)"
             )
             
-            filename = export_msgs_to_csv()
+            filename = self.exporter.export_msgs_to_csv()
                 
             self.slack_app.client.files_upload_v2(
                 file=filename,

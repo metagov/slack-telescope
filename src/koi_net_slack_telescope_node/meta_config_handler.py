@@ -4,6 +4,8 @@ from logging import Logger
 from koi_net.secure_manager import ConfigProvider
 from slack_bolt import App
 
+from .persistent import PersistentObject
+
 from .config import SlackTelescopeNodeConfig
 
 
@@ -24,3 +26,5 @@ class MetaConfigHandler:
         self.config.telescope.bot_user_id = user_id
         self.config.telescope.team_id = team_id
         self.config.save_to_yaml()
+        
+        PersistentObject._directory = self.config.telescope.persistent_dir

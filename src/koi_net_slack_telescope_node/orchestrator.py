@@ -14,8 +14,9 @@ from .rid_types import Telescoped
 from .slack_interface.functions import SlackFunctions
 from .slack_interface.block_builder import BlockBuilder
 from .config import SlackTelescopeNodeConfig
-from .persistent import PersistentMessage, PersistentUser
+from .persistent import PersistentMessage, PersistentUser, create_link
 from .consts import MessageStatus, UserStatus, ActionId
+from .utils import retraction_time_elapsed
 
 
 @dataclass
@@ -188,7 +189,7 @@ class Orchestrator:
                 if author["is_bot"]:
                     p_user.status = UserStatus.OPT_IN
                 else:
-                    self.block_builder.create_consent_interaction(message)
+                    self.create_consent_interaction(message)
                 
             if p_user.status == UserStatus.PENDING:
                 self.log.info(f"Queued message <{message}>")
@@ -289,7 +290,7 @@ class Orchestrator:
                 # handle_update_message(message)
             
             self.slack_functions.update_msg(p_message.request_interaction, self.block_builder.end_request_interaction_blocks(message))
-                            
+            
         else:
             self.log.info(f"Message <{message}> could not be retracted")
             self.slack_functions.update_msg(

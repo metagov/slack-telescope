@@ -1,6 +1,10 @@
 from koi_net.core import FullNode
 from slack_bolt import App
 
+from .slack_interface.events import SlackEventHandler
+
+from .socket_mode import SlackSocketMode
+from .orchestrator import Orchestrator
 from .effector_actions import (
     deref_slack_channel, 
     deref_slack_message,
@@ -31,6 +35,7 @@ class SlackTelescopeNode(FullNode):
         signing_secret=config.env.slack_signing_secret,
         raise_error_for_unhandled_request=False
     )
+    slack_event_handler = SlackEventHandler
     slack_action_handler = SlackActionHandler
     slack_command_handler = SlackCommandHandler
     slack_functions = SlackFunctions
@@ -38,6 +43,9 @@ class SlackTelescopeNode(FullNode):
     meta_config_handler = MetaConfigHandler
     block_builder = BlockBuilder
     exporter = Exporter
+    orchestrator = Orchestrator
+    
+    socket_mode = SlackSocketMode
     
     knowledge_handlers = FullNode.knowledge_handlers + [
         trust_only_first_contact

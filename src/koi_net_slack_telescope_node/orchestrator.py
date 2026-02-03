@@ -109,13 +109,15 @@ class Orchestrator:
                 
             self.slack_functions.update_msg(p_message.request_interaction, self.block_builder.end_request_interaction_blocks(message))
 
-    @lru_cache(maxsize=128)
     def slack_message_rid_to_url(self, rid: SlackMessage):
-        url_str = self.slack_app.client.chat_getPermalink(
-            channel=rid.channel_id,
-            message_ts=rid.ts
-        )["permalink"]
-        return RID.from_string(url_str)
+        @lru_cache(maxsize=128)
+        def cached(rid: SlackMessage):
+            url_str = self.slack_app.client.chat_getPermalink(
+                channel=rid.channel_id,
+                message_ts=rid.ts
+            )["permalink"]
+            return RID.from_string(url_str)
+        return cached(rid)
 
     # REQUEST METHODS
     def create_request_interaction(
@@ -123,7 +125,7 @@ class Orchestrator:
         message: SlackMessage, 
         author: SlackUser, 
         tagger: SlackUser
-    ):    
+    ):
         p_message = PersistentMessage(message)
         
         # message previously been tagged and handled   

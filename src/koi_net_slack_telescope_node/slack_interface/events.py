@@ -21,7 +21,11 @@ class SlackEventHandler:
     effector: Effector
     orchestrator: Orchestrator
     
+    def __post_init__(self):
+        self.register_handlers()
+    
     def register_handlers(self):
+        self.log.info("registered event handlers")
         @self.slack_app.event("reaction_added")
         def handle_reaction_added(body, event):
             if event["item"]["type"] != "message":

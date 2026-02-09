@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from pydantic import BaseModel, Field
 from koi_net.config.core import EnvConfig
 from koi_net.config.full_node import (
@@ -27,6 +25,7 @@ class TelescopeConfig(BaseModel):
     
     text_preview_char_limit: int = 500
     allowed_channels: list[str] = []
+    retraction_time_limit_days: int = 28
     
     # set automatically
     bot_user_id: str | None = None
@@ -44,6 +43,3 @@ class SlackTelescopeNodeConfig(FullNodeConfig):
     )
     telescope: TelescopeConfig = Field(default_factory=TelescopeConfig)
     env: SlackEnvConfig = Field(default_factory=SlackEnvConfig)
-
-
-RETRACTION_TIME_LIMIT = timedelta(weeks=4)

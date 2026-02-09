@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from logging import Logger
 
@@ -16,7 +17,6 @@ from .slack_interface.block_builder import BlockBuilder
 from .config import SlackTelescopeNodeConfig
 from .persistent import PersistentMessage, PersistentUser, create_link
 from .consts import MessageStatus, UserStatus, ActionId
-from .utils import retraction_time_elapsed
 
 
 @dataclass
@@ -258,7 +258,14 @@ class Orchestrator:
     def handle_retract_interaction(self, action_id, message):
         p_message = PersistentMessage(message)
         
-        if not retraction_time_elapsed(p_message):
+        initial_date = datetime.fromtimestamp(
+            timestamp=float(p_message.retract_interaction.ts),
+            tz=timezone.utc
+        )
+        
+        elapsed_time = datetime.now(timezone.utc) - initial_date
+        
+        if elapsed_time < timedelta(days=self.config.telescope.retraction_time_limit_days):
             if action_id == ActionId.RETRACT:
                 self.log.info(f"Message <{message}> retracted")
                 p_message.status = MessageStatus.RETRACTED

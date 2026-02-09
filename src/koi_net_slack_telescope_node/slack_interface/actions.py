@@ -17,32 +17,33 @@ class SlackActionHandler:
         self.register_handlers()
     
     def register_handlers(self):
-        @self.slack_app.action({"block_id": BlockId.REQUEST})
-        def handle_request_action(ack, action):
-            ack()
-            
-            action_id = action["action_id"]
-            rid_string = utils.normalize_legacy_prefix(action["value"])
-            message = RID.from_string(rid_string)
-            
-            self.orchestrator.handle_request_interaction(action_id, message)
+        self.slack_app.action({"block_id": BlockId.REQUEST})(self.handle_request_action)
+        self.slack_app.action({"block_id": BlockId.CONSENT})(self.handle_consent_action)
+        self.slack_app.action({"block_id": BlockId.RETRACT})(self.handle_retract_action)
+        
+    def handle_request_action(self, ack, action):
+        ack()
+        
+        action_id = action["action_id"]
+        rid_string = utils.normalize_legacy_prefix(action["value"])
+        message = RID.from_string(rid_string)
+        
+        self.orchestrator.handle_request_interaction(action_id, message)
 
-        @self.slack_app.action({"block_id": BlockId.CONSENT})
-        def handle_consent_action(ack, action):
-            ack()
-            
-            action_id = action["action_id"]
-            rid_string = utils.normalize_legacy_prefix(action["value"])
-            message = RID.from_string(rid_string)
-            
-            self.orchestrator.handle_consent_interaction(action_id, message)
-            
-        @self.slack_app.action({"block_id": BlockId.RETRACT})
-        def handle_retract_action(ack, action):
-            ack()
-            
-            action_id = action["action_id"]
-            rid_string = utils.normalize_legacy_prefix(action["value"])
-            message = RID.from_string(rid_string)
-            
-            self.orchestrator.handle_retract_interaction(action_id, message)
+    def handle_consent_action(self, ack, action):
+        ack()
+        
+        action_id = action["action_id"]
+        rid_string = utils.normalize_legacy_prefix(action["value"])
+        message = RID.from_string(rid_string)
+        
+        self.orchestrator.handle_consent_interaction(action_id, message)
+        
+    def handle_retract_action(self, ack, action):
+        ack()
+        
+        action_id = action["action_id"]
+        rid_string = utils.normalize_legacy_prefix(action["value"])
+        message = RID.from_string(rid_string)
+        
+        self.orchestrator.handle_retract_interaction(action_id, message)

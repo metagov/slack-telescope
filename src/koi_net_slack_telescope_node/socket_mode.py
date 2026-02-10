@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
@@ -9,6 +9,7 @@ from .config import SlackTelescopeNodeConfig
 class SlackSocketMode:
     slack_app: App
     config: SlackTelescopeNodeConfig
+    handler: SocketModeHandler | None = field(init=False, default=None)
     
     def start(self):
         self.handler = SocketModeHandler(
@@ -17,4 +18,5 @@ class SlackSocketMode:
         self.handler.connect()
         
     def stop(self):
-        self.handler.close()
+        if self.handler:
+            self.handler.close()

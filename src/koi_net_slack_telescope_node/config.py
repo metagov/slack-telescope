@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field
-from koi_net.config.core import EnvConfig
-from koi_net.config.full_node import (
+from koi_net.config import (
     FullNodeConfig, 
     KoiNetConfig, 
-    NodeProfile, 
-    NodeProvides
+    FullNodeProfile, 
+    NodeProvides,
+    EnvConfig
 )
 
 from .rid_types import Telescoped
@@ -34,7 +34,7 @@ class TelescopeConfig(BaseModel):
 class SlackTelescopeNodeConfig(FullNodeConfig):
     koi_net: KoiNetConfig = KoiNetConfig(
         node_name="slack-telescope",
-        node_profile=NodeProfile(
+        node_profile=FullNodeProfile(
             provides=NodeProvides(
                 event=[Telescoped],
                 state=[Telescoped]

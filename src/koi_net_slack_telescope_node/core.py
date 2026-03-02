@@ -2,17 +2,15 @@ from koi_net.core import FullNode
 from slack_bolt import App
 
 from .slack_interface.events import SlackEventHandler
-
 from .socket_mode import SlackSocketMode
 from .orchestrator import Orchestrator
 from .effector_actions import (
-    deref_slack_channel, 
-    deref_slack_message,
-    deref_slack_user,
-    deref_slack_workspace,
-    deref_telescoped)
-from .knowledge_handlers import trust_only_first_contact
-from .extended_handler_context import ExtendedHandlerContext
+    DerefSlackChannel,
+    DerefSlackMessage,
+    DerefSlackUser,
+    DerefSlackWorkspace,
+    DerefTelescoped)
+from .knowledge_handlers import TrustOnlyFirstContact
 from .slack_interface.block_builder import BlockBuilder
 from .meta_config_handler import MetaConfigHandler
 from .slack_interface.functions import SlackFunctions
@@ -28,7 +26,6 @@ class SlackTelescopeNode(FullNode):
     config_schema = SlackTelescopeNodeConfig
     response_handler = TelescopeResponseHandler
     server = SlackTelescopeNodeServer
-    handler_context = ExtendedHandlerContext
     
     slack_app = lambda config: App(
         token=config.env.slack_bot_token,
@@ -47,13 +44,10 @@ class SlackTelescopeNode(FullNode):
     
     socket_mode = SlackSocketMode
     
-    knowledge_handlers = FullNode.knowledge_handlers + [
-        trust_only_first_contact
-    ]
-    deref_handlers = [
-        deref_slack_user,
-        deref_slack_message,
-        deref_slack_channel,
-        deref_slack_workspace,
-        deref_telescoped
-    ]
+    trust_only_first_contact = TrustOnlyFirstContact
+    
+    deref_slack_user = DerefSlackUser
+    deref_slack_message = DerefSlackMessage
+    deref_slack_channel = DerefSlackChannel
+    deref_slack_workspace = DerefSlackWorkspace
+    deref_telescoped = DerefTelescoped

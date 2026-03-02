@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from logging import Logger
 
-from koi_net.effector import Effector
+from koi_net.components import Effector
 from rid_lib.types import SlackMessage, SlackUser
 from slack_bolt import App
 

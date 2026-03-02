@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from koi_net.effector import Effector
+from koi_net.components import Effector
 from rid_lib import RID
 from rid_lib.types import SlackMessage, SlackUser
 

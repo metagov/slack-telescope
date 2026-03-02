@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from koi_net.entrypoints import NodeServer
+from koi_net.components import NodeServer
 from fastapi import Request
 from slack_bolt import App
 from slack_bolt.adapter.fastapi import SlackRequestHandler

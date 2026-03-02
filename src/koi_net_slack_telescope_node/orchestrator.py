@@ -3,8 +3,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from logging import Logger
 
-from koi_net.effector import Effector
-from koi_net.processor.kobj_queue import KobjQueue
+from koi_net.components import Effector, KobjQueue
 from koi_net.protocol.event import EventType
 from rid_lib import RID
 from rid_lib.types import SlackChannel, SlackMessage, SlackUser

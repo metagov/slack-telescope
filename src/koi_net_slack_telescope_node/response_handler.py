@@ -4,7 +4,7 @@ from rid_lib import RID
 from rid_lib.types import KoiNetNode
 from rid_lib.ext import Manifest
 from rid_lib.ext.bundle import Bundle
-from koi_net.protocol.api_models import (
+from koi_net.protocol.api.models import (
     RidsPayload,
     ManifestsPayload,
     BundlesPayload,
@@ -12,8 +12,7 @@ from koi_net.protocol.api_models import (
     FetchManifests,
     FetchBundles,
 )
-from koi_net.effector import Effector
-from koi_net.network.response_handler import ResponseHandler
+from koi_net.components import Effector, ResponseHandler
 
 from .rid_types import Telescoped
 

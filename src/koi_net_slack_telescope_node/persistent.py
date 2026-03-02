@@ -1,4 +1,5 @@
 import json, os
+from pathlib import Path
 from rid_lib.core import RID
 from rid_lib.types import SlackMessage, SlackUser, HTTPS
 from .consts import UserStatus, MessageStatus
@@ -6,7 +7,7 @@ from .utils import encode_b64, decode_b64
 
 
 class PersistentObject:
-    _directory: str
+    _directory: Path
     _instances: dict = {}
     
     # ensures same RID results in same object
@@ -25,7 +26,7 @@ class PersistentObject:
     @property
     def _file_path(self):
         encoded_rid_str = encode_b64(str(self.rid))
-        return f"{self._directory}/{encoded_rid_str}.json"
+        return self._directory / (encoded_rid_str + ".json")
     
     def _read(self):
         try:

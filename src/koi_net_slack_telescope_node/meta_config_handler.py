@@ -1,18 +1,18 @@
+import threading
 from dataclasses import dataclass
 from logging import Logger
-import threading
+from pathlib import Path
 
-from koi_net.secure_manager import ConfigProvider
 from slack_bolt import App
-
+from koi_net.components import ConfigProvider
 from .persistent import PersistentObject
-
 from .config import SlackTelescopeNodeConfig
 
 
 @dataclass
 class MetaConfigHandler:
     log: Logger
+    root_dir: Path
     slack_app: App
     config: SlackTelescopeNodeConfig | ConfigProvider
     shutdown_signal: threading.Event
@@ -30,7 +30,7 @@ class MetaConfigHandler:
         self.config.telescope.team_id = team_id
         self.config.save_to_yaml()
         
-        PersistentObject._directory = self.config.telescope.persistent_dir
+        PersistentObject._directory = self.root_dir / self.config.telescope.persistent_dir
         
         if (not self.config.telescope.observatory_channel_id) or (not self.config.telescope.broadcast_channel_id):
             self.log.error("Missing required config: '/telescope/observatory_channel_id`, `/telescope/broadcast_channel_id`")

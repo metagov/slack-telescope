@@ -1,7 +1,7 @@
 import csv, os, time, json
 from dataclasses import dataclass
 
-from koi_net.effector import Effector
+from koi_net.components import Effector
 
 from .rid_types import Telescoped
 from .persistent import retrieve_all_rids

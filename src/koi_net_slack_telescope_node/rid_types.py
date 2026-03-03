@@ -1,5 +1,5 @@
 from rid_lib.core import ORN, RID
-from rid_lib.types import SlackMessage
+
 
 class Telescoped(ORN):
     namespace = "telescoped"

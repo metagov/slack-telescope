@@ -1,19 +1,38 @@
-import logging
-from koi_net.processor.handler import HandlerType, STOP_CHAIN
-from koi_net.processor.knowledge_object import KnowledgeObject
-from koi_net.context import HandlerContext
-from rid_lib.types import KoiNetNode
-from .core import node
+from dataclasses import dataclass
 
-logger = logging.getLogger(__name__)
+from koi_net.components.interfaces import KnowledgeHandler, HandlerType, STOP_CHAIN
+from koi_net.protocol import KnowledgeObject
+from rid_lib.types import KoiNetNode, SlackMessage
+
+from .config import SlackTelescopeNodeConfig
 
 
-@node.pipeline.register_handler(handler_type=HandlerType.RID, rid_types=[KoiNetNode])
-def trust_only_first_contact(ctx: HandlerContext, kobj: KnowledgeObject):
-    if kobj.source is None:
-        return
+@dataclass
+class TrustOnlyFirstContact(KnowledgeHandler):
+    config: SlackTelescopeNodeConfig
     
-    # block external events about nodes not from the first contact (coordinator)
-    if kobj.source != node.config.koi_net.first_contact.rid:
-        logger.info("Blocking node knowledge object not sent by first contact")
-        return STOP_CHAIN
+    handler_type=HandlerType.RID
+    rid_types=(KoiNetNode,)
+
+    def handle(self, kobj: KnowledgeObject):
+        if kobj.source is None:
+            return
+        
+        # block external events about nodes not from the first contact (coordinator)
+        if kobj.source != self.config.koi_net.first_contact.rid:
+            self.log.info("Blocking node knowledge object not sent by first contact")
+            return STOP_CHAIN
+
+@dataclass
+class UpdateLastProcessedTS(KnowledgeHandler):
+    config: SlackTelescopeNodeConfig
+    
+    handler_type=HandlerType.RID
+    rid_types=(SlackMessage,)
+    
+    def handle(self, kobj: KnowledgeObject):
+        msg_rid: SlackMessage = kobj.rid
+        
+        if float(msg_rid.ts) > float(self.config.telescope.last_processed_ts):
+            self.config.telescope.last_processed_ts = msg_rid.ts
+            self.config.save_to_yaml()

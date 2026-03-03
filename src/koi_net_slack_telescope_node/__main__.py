@@ -1,3 +1,3 @@
-from .core import node
+from .core import SlackTelescopeNode
 
-node.server.run()
+SlackTelescopeNode().run()

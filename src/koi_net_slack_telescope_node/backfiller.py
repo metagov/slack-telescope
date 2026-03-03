@@ -93,13 +93,18 @@ class TelescopeBackfiller(ThreadedComponent):
         # get list of channels
         channel_cursor = None
         channels = [{"id": channel_id} for channel_id in self.config.telescope.allowed_channels]
-        while (not channels or channel_cursor) and not self.should_exit.is_set():
-            resp = await self.async_slack_app.client.conversations_list(cursor=channel_cursor)
-            result = resp.data
-            channels.extend(result["channels"])
-            self.log.info(f"Found {len(channels)} channels")
-            channel_cursor = result.get("response_metadata", {}).get("next_cursor")
         
+        if not channels:
+            while  not self.should_exit.is_set():
+                resp = await self.async_slack_app.client.conversations_list(cursor=channel_cursor)
+                result = resp.data
+                channels.extend(result["channels"])
+                self.log.info(f"Found {len(channels)} channels")
+                channel_cursor = result.get("response_metadata", {}).get("next_cursor")
+                
+                if not channel_cursor:
+                    break
+            
         self.log.info(f"Found {len(channels)} channels")
         for channel in channels:
             channel_id = channel["id"]
@@ -111,7 +116,7 @@ class TelescopeBackfiller(ThreadedComponent):
             # get list of messages in channel
             message_cursor = None
             messages: list[dict] = []
-            while (not messages or message_cursor) and not self.should_exit.is_set():
+            while not self.should_exit.is_set():
                 result = await self.auto_retry(
                     func=self.async_slack_app.client.conversations_history,
                     channel=channel_id,
@@ -122,11 +127,12 @@ class TelescopeBackfiller(ThreadedComponent):
                 
                 messages.extend(result["messages"])
                 self.log.debug(f"Indexed {len(messages)} messages")
-                if result["has_more"]:
-                    message_cursor = result["response_metadata"]["next_cursor"]
-                else:
-                    message_cursor = None
-
+                
+                if not result["has_more"]:
+                    break
+                
+                message_cursor = result["response_metadata"]["next_cursor"]
+                
             self.log.info(f"Found {len(messages)} messages in {channel_id}")
             messages.sort(key=lambda msg: msg["ts"])
             for message in messages:
@@ -144,7 +150,7 @@ class TelescopeBackfiller(ThreadedComponent):
                 if thread_ts:
                     threaded_message_cursor = None
                     threaded_messages = []
-                    while not threaded_messages or threaded_message_cursor:
+                    while not self.should_exit.is_set():
                         result = await self.auto_retry(
                             func=self.async_slack_app.client.conversations_replies,
                             channel=channel_id,
@@ -155,11 +161,10 @@ class TelescopeBackfiller(ThreadedComponent):
                         
                         threaded_messages.extend(result["messages"])
                         
-                        if result["has_more"]:
-                            threaded_message_cursor = result["response_metadata"]["next_cursor"]
-                        else:
-                            threaded_message_cursor = None
-                    
+                        if not result["has_more"]:
+                            break
+
+                        threaded_message_cursor = result["response_metadata"]["next_cursor"]                    
                     
                     for threaded_message in threaded_messages[1:]:
                         self.process_message(channel_id, threaded_message)

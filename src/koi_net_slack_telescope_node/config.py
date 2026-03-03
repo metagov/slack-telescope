@@ -16,7 +16,6 @@ class SlackEnvConfig(EnvConfig):
     slack_app_token: str
 
 class TelescopeConfig(BaseModel):
-    backfill_file: str = "backfill.json"
     persistent_dir: str = "persistent"
     emoji: str = "telescope"
     
@@ -30,6 +29,7 @@ class TelescopeConfig(BaseModel):
     # set automatically
     bot_user_id: str | None = None
     team_id: str | None = None
+    last_processed_ts: str = "0"
 
 class SlackTelescopeNodeConfig(FullNodeConfig):
     koi_net: KoiNetConfig = KoiNetConfig(

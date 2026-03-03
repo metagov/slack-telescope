@@ -1,5 +1,6 @@
 from koi_net.core import FullNode
 from slack_bolt import App
+from slack_bolt.async_app import AsyncApp
 
 from .slack_interface.events import SlackEventHandler
 from .socket_mode import SlackSocketMode
@@ -10,7 +11,7 @@ from .effector_actions import (
     DerefSlackUser,
     DerefSlackWorkspace,
     DerefTelescoped)
-from .knowledge_handlers import TrustOnlyFirstContact
+from .knowledge_handlers import TrustOnlyFirstContact, UpdateLastProcessedTS
 from .slack_interface.block_builder import BlockBuilder
 from .meta_config_handler import MetaConfigHandler
 from .slack_interface.functions import SlackFunctions
@@ -20,6 +21,7 @@ from .response_handler import TelescopeResponseHandler
 from .slack_interface.actions import SlackActionHandler
 from .slack_interface.commands import SlackCommandHandler
 from .export import Exporter
+from .backfiller import TelescopeBackfiller
 
 
 class SlackTelescopeNode(FullNode):
@@ -29,8 +31,11 @@ class SlackTelescopeNode(FullNode):
     
     slack_app = lambda config: App(
         token=config.env.slack_bot_token,
-        signing_secret=config.env.slack_signing_secret,
-        raise_error_for_unhandled_request=False
+        signing_secret=config.env.slack_signing_secret
+    )
+    async_slack_app = lambda config: AsyncApp(
+        token=config.env.slack_bot_token,
+        signing_secret=config.env.slack_signing_secret
     )
     slack_event_handler = SlackEventHandler
     slack_action_handler = SlackActionHandler
@@ -45,9 +50,12 @@ class SlackTelescopeNode(FullNode):
     socket_mode = SlackSocketMode
     
     trust_only_first_contact = TrustOnlyFirstContact
+    update_last_processed_ts = UpdateLastProcessedTS
     
     deref_slack_user = DerefSlackUser
     deref_slack_message = DerefSlackMessage
     deref_slack_channel = DerefSlackChannel
     deref_slack_workspace = DerefSlackWorkspace
     deref_telescoped = DerefTelescoped
+
+    telescope_backfiller = TelescopeBackfiller

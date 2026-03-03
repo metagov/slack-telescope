@@ -1,10 +1,13 @@
+from dataclasses import dataclass
+
 from koi_net.components.interfaces import KnowledgeHandler, HandlerType, STOP_CHAIN
 from koi_net.protocol import KnowledgeObject
-from rid_lib.types import KoiNetNode
+from rid_lib.types import KoiNetNode, SlackMessage
 
 from .config import SlackTelescopeNodeConfig
 
 
+@dataclass
 class TrustOnlyFirstContact(KnowledgeHandler):
     config: SlackTelescopeNodeConfig
     
@@ -19,3 +22,17 @@ class TrustOnlyFirstContact(KnowledgeHandler):
         if kobj.source != self.config.koi_net.first_contact.rid:
             self.log.info("Blocking node knowledge object not sent by first contact")
             return STOP_CHAIN
+
+@dataclass
+class UpdateLastProcessedTS(KnowledgeHandler):
+    config: SlackTelescopeNodeConfig
+    
+    handler_type=HandlerType.RID
+    rid_types=(SlackMessage,)
+    
+    def handle(self, kobj: KnowledgeObject):
+        msg_rid: SlackMessage = kobj.rid
+        
+        if float(msg_rid.ts) > float(self.config.telescope.last_processed_ts):
+            self.config.telescope.last_processed_ts = msg_rid.ts
+            self.config.save_to_yaml()

@@ -26,6 +26,8 @@ class TelescopeConfig(BaseModel):
     allowed_channels: list[str] = []
     retraction_time_limit_days: int = 28
     
+    use_socket_mode: bool = True
+    
     # set automatically
     bot_user_id: str | None = None
     team_id: str | None = None

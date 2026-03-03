@@ -12,6 +12,9 @@ class SlackSocketMode:
     handler: SocketModeHandler | None = field(init=False, default=None)
     
     def start(self):
+        if not self.config.telescope.use_socket_mode:
+            return
+        
         self.handler = SocketModeHandler(
             app=self.slack_app, 
             app_token=self.config.env.slack_app_token)

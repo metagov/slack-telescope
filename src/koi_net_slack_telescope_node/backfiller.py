@@ -87,10 +87,12 @@ class TelescopeBackfiller(ThreadedComponent):
     
     async def backfill_telescopes(self):
         self.log.info("Beginning Telescope backfill...")
+        last_processed_ts = self.config.telescope.last_processed_ts
+        self.log.debug(f"Last processed timestamp at startup is: {last_processed_ts}")
 
         # get list of channels
         channel_cursor = None
-        channels = [{"id": channel_id for channel_id in self.config.telescope.allowed_channels}]
+        channels = [{"id": channel_id} for channel_id in self.config.telescope.allowed_channels]
         while (not channels or channel_cursor) and not self.should_exit.is_set():
             resp = await self.async_slack_app.client.conversations_list(cursor=channel_cursor)
             result = resp.data
@@ -105,7 +107,7 @@ class TelescopeBackfiller(ThreadedComponent):
             if channel.get("is_archived"):
                 self.log.debug(f"Skipping archived channel {channel['name']}")
                 continue
-            
+                
             # get list of messages in channel
             message_cursor = None
             messages: list[dict] = []
@@ -113,12 +115,13 @@ class TelescopeBackfiller(ThreadedComponent):
                 result = await self.auto_retry(
                     func=self.async_slack_app.client.conversations_history,
                     channel=channel_id,
-                    limit=500,
+                    limit=999,
                     cursor=message_cursor,
-                    oldest=self.config.telescope.last_processed_ts
+                    oldest=last_processed_ts
                 )
                 
                 messages.extend(result["messages"])
+                self.log.debug(f"Indexed {len(messages)} messages")
                 if result["has_more"]:
                     message_cursor = result["response_metadata"]["next_cursor"]
                 else:
@@ -146,9 +149,8 @@ class TelescopeBackfiller(ThreadedComponent):
                             func=self.async_slack_app.client.conversations_replies,
                             channel=channel_id,
                             ts=thread_ts,
-                            limit=500,
                             cursor=threaded_message_cursor,
-                            oldest=self.config.telescope.last_processed_ts
+                            oldest=last_processed_ts
                         )
                         
                         threaded_messages.extend(result["messages"])

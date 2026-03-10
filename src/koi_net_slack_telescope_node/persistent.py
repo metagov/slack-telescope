@@ -82,7 +82,7 @@ class PersistentUser(PersistentObject):
 class PersistentMessage(PersistentObject):
     _instances = {}
     
-    status: SlackUser = persistent_prop("status")
+    status: MessageStatus = persistent_prop("status")
     author: SlackUser = persistent_prop("author", rid=True)
     tagger: SlackUser = persistent_prop("tagger", rid=True)
     

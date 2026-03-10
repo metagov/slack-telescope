@@ -12,6 +12,7 @@ from .rid_types import Telescoped
 
 class SlackEnvConfig(EnvConfig):
     slack_bot_token: str
+    slack_user_token: str
     slack_signing_secret: str
     slack_app_token: str
 

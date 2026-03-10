@@ -46,14 +46,19 @@ class DerefSlackMessage(DerefHandler):
                 raise err
     
     def handle(self, rid: SlackMessage):
+        messages = self.join_and_retry_on_err(
+            func=self.slack_app.client.conversations_replies,
+            channel=rid.channel_id,
+            ts=rid.ts,
+            limit=1
+        )["messages"]
+        
+        if len(messages) == 0:
+            return
+        
         return Bundle.generate(
             rid=rid,
-            contents=self.join_and_retry_on_err(
-                func=self.slack_app.client.conversations_replies,
-                channel=rid.channel_id,
-                ts=rid.ts,
-                limit=1
-            )["messages"][0]
+            contents=messages[0]
         )
 
 @dataclass

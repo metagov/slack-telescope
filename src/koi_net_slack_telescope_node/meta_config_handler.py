@@ -19,7 +19,7 @@ class MetaConfigHandler:
     
     def start(self):
         resp = self.slack_app.client.auth_test()
-        self.log.info(f"Connected to {resp.get('team')}")
+        self.log.info(f"Connected to {resp.get('team')} as {resp.get('user')}")
         team_id = resp.get("team_id")
         user_id = resp.get("user_id")
         

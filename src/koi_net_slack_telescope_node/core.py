@@ -1,6 +1,7 @@
 from koi_net.core import FullNode
 from slack_bolt import App
 from slack_bolt.async_app import AsyncApp
+from slack_sdk import WebClient
 
 from .slack_interface.events import SlackEventHandler
 from .socket_mode import SlackSocketMode
@@ -29,13 +30,12 @@ class SlackTelescopeNode(FullNode):
     response_handler = TelescopeResponseHandler
     server = SlackTelescopeNodeServer
     
-    slack_app = lambda config: App(
+    slack_app: App = lambda config: App(
         token=config.env.slack_bot_token,
         signing_secret=config.env.slack_signing_secret
     )
-    async_slack_app = lambda config: AsyncApp(
-        token=config.env.slack_bot_token,
-        signing_secret=config.env.slack_signing_secret
+    slack_user_client: WebClient = lambda config: WebClient(
+        token=config.env.slack_user_token
     )
     slack_event_handler = SlackEventHandler
     slack_action_handler = SlackActionHandler

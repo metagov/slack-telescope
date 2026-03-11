@@ -1,6 +1,8 @@
 .env
 .venv
 __pycache__
+/.rid_cache/
+log.ndjson
 cache
 persistent
 export

@@ -50,7 +50,6 @@ class SlackTelescopeNode(FullNode):
     socket_mode = SlackSocketMode
     
     trust_only_first_contact = TrustOnlyFirstContact
-    update_last_processed_ts = UpdateLastProcessedTS
     
     deref_slack_user = DerefSlackUser
     deref_slack_message = DerefSlackMessage

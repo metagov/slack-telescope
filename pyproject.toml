@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "koi-net-slack-telescope-node"
-version = "1.0.0"
+version = "0.1.0"
 description = "Implementation of KOI-net Slack Telescope node in Python"
 authors = [
     {name = "Luke Miller", email = "luke@block.science"}

@@ -102,8 +102,6 @@ class TelescopeBackfiller(ThreadedComponent):
             max_pages = result["paging"]["pages"]
             curr_page += 1
             
-        print(f"retrieved {len(messages)} messages")
-            
         for message in messages:
             self.process_message(message)
             

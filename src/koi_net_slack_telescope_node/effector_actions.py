@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from logging import Logger
+import time
 
 from koi_net.components.interfaces import DerefHandler
 from slack_bolt import App
@@ -49,6 +50,12 @@ class DerefSlackMessage(DerefHandler):
                     else:
                         raise err
                 return func(*args, **kwargs)
+            elif err.response["error"] == "ratelimited":
+                retry_after = int(err.response.headers["Retry-After"])
+                self.log.info(f"timed out, waiting {retry_after} seconds")
+                time.sleep(retry_after)
+                return self.join_and_retry_on_err(
+                    func=func, *args, **kwargs)
             else:
                 raise err
     

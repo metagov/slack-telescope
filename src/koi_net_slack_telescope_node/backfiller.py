@@ -69,9 +69,6 @@ class TelescopeBackfiller(ThreadedComponent):
         author = SlackUser(self.config.telescope.team_id, author_user_id)
         tagger = SlackUser(self.config.telescope.team_id, tagger_user_id)
         
-        # self.log.info("simulated request interaction...")
-        # return
-        
         self.orchestrator.create_request_interaction(message_rid, author, tagger)
             
     def backfill_telescopes(self):

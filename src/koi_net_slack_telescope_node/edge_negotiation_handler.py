@@ -50,7 +50,7 @@ class GatedEdgeNegotiationHandler(KnowledgeHandler):
     @depends_on("kobj_worker")
     def start(self):
         self.log.debug("Analyzing cached edges...")
-        for rid in self.cache.list_rids(KoiNetEdge):
+        for rid in self.cache.list_rids(rid_types=(KoiNetEdge,)):
             bundle = self.cache.read(rid)
             if not bundle:
                 continue

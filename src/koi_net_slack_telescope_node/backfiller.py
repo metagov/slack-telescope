@@ -2,6 +2,7 @@ import threading
 from logging import Logger
 from dataclasses import dataclass, field
 
+from koi_net.infra import depends_on
 from slack_sdk import WebClient
 from rid_lib.types import SlackMessage, SlackUser
 from koi_net.components import Effector, KobjQueue
@@ -26,6 +27,7 @@ class TelescopeBackfiller(ThreadedComponent):
     
     should_exit: threading.Event = field(init=False, default_factory=threading.Event)
     
+    @depends_on("server")
     def start(self):
         self.should_exit.clear()
         super().start()

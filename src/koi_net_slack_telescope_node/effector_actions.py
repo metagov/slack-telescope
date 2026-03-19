@@ -42,16 +42,23 @@ class DerefSlackMessage(DerefHandler):
                     channel=kwargs["channel"]
                 )
                 return func(*args, **kwargs)
+            elif err.response["error"] == "is_archived":
+                return None
             else:
                 raise err
     
     def handle(self, rid: SlackMessage):
-        messages = self.join_and_retry_on_err(
+        resp = self.join_and_retry_on_err(
             func=self.slack_app.client.conversations_replies,
             channel=rid.channel_id,
             ts=rid.ts,
             limit=1
-        )["messages"]
+        )
+        
+        if not resp:
+            return
+        
+        messages = resp["messages"]
         
         if len(messages) == 0:
             return

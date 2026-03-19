@@ -44,6 +44,7 @@ class DerefSlackMessage(DerefHandler):
                     )
                 except SlackApiError as err:
                     if err.response["error"] == "is_archived":
+                        self.log.warning("channel is archived, dereference failed")
                         return None
                     else:
                         raise err
@@ -111,7 +112,11 @@ class DerefTelescoped(DerefHandler):
         if p_msg.status not in (MessageStatus.ACCEPTED, MessageStatus.ACCEPTED_ANON):
             return
         
-        message_data = self.effector.deref(msg).contents
+        message_bundle = self.effector.deref(msg)
+        if not message_bundle:
+            return
+        
+        message_data = message_bundle.contents
         channel_data = self.effector.deref(msg.channel).contents
         team_data = self.effector.deref(msg.workspace).contents
         author_data = self.effector.deref(p_msg.author).contents

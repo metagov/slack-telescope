@@ -14,6 +14,7 @@ from koi_net.protocol.api.models import (
 )
 from koi_net.components import Effector, ResponseHandler
 
+from .config import SlackTelescopeNodeConfig
 from .rid_types import Telescoped
 
 
@@ -22,9 +23,11 @@ class TelescopeResponseHandler(ResponseHandler):
     """Handles generating responses to requests from other KOI nodes."""
     
     effector: Effector
+    config: SlackTelescopeNodeConfig
     
-    def list_allowed_rids(self, rid_types: list[type[RID]]):
-        if (not rid_types) or (Telescoped in rid_types):
+    def list_allowed_rids(self, source: KoiNetNode, rid_types: list[type[RID]]):
+        if ((not rid_types or Telescoped in rid_types) and 
+            source in self.config.telescope.allowed_nodes):
             return self.cache.list_rids(rid_types=[Telescoped])
         else:
             return []
@@ -35,7 +38,7 @@ class TelescopeResponseHandler(ResponseHandler):
         source: KoiNetNode
     ) -> RidsPayload:
         self.log.info(f"Request to fetch rids, allowed types {req.rid_types}")
-        rids = self.list_allowed_rids(req.rid_types)
+        rids = self.list_allowed_rids(source, req.rid_types)
         return RidsPayload(rids=rids)
         
     def fetch_manifests_handler(
@@ -48,7 +51,7 @@ class TelescopeResponseHandler(ResponseHandler):
         manifests: list[Manifest] = []
         not_found: list[RID] = []
         
-        for rid in (req.rids or self.list_allowed_rids(req.rid_types)):
+        for rid in (req.rids or self.list_allowed_rids(source, req.rid_types)):
             if type(rid) is not Telescoped:
                 not_found.append(rid)
                 continue
@@ -72,7 +75,10 @@ class TelescopeResponseHandler(ResponseHandler):
         not_found: list[RID] = []
 
         for rid in req.rids:
-            if type(rid) is not Telescoped:
+            if (
+                type(rid) is not Telescoped or 
+                source not in self.config.telescope.allowed_nodes
+            ):
                 not_found.append(rid)
                 continue
             

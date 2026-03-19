@@ -6,6 +6,7 @@ from koi_net.config import (
     NodeProvides,
     EnvConfig
 )
+from rid_lib.types import KoiNetNode
 
 from .rid_types import Telescoped
 
@@ -32,7 +33,8 @@ class TelescopeConfig(BaseModel):
     # set automatically
     bot_user_id: str | None = None
     team_id: str | None = None
-    last_processed_ts: str = "0"
+    
+    allowed_nodes: list[KoiNetNode] | None = None
 
 class SlackTelescopeNodeConfig(FullNodeConfig):
     koi_net: KoiNetConfig = KoiNetConfig(

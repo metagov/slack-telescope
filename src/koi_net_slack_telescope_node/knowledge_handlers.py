@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from koi_net.components.interfaces import KnowledgeHandler, HandlerType, STOP_CHAIN
 from koi_net.protocol import KnowledgeObject
-from rid_lib.types import KoiNetNode, SlackMessage
+from rid_lib.types import KoiNetNode
 
 from .config import SlackTelescopeNodeConfig
 

@@ -1,7 +1,8 @@
 from koi_net.core import FullNode
 from slack_bolt import App
-from slack_bolt.async_app import AsyncApp
 from slack_sdk import WebClient
+
+from .edge_negotiation_handler import GatedEdgeNegotiationHandler
 
 from .slack_interface.events import SlackEventHandler
 from .socket_mode import SlackSocketMode
@@ -11,8 +12,9 @@ from .effector_actions import (
     DerefSlackMessage,
     DerefSlackUser,
     DerefSlackWorkspace,
-    DerefTelescoped)
-from .knowledge_handlers import TrustOnlyFirstContact, UpdateLastProcessedTS
+    DerefTelescoped
+)
+from .knowledge_handlers import TrustOnlyFirstContact
 from .slack_interface.block_builder import BlockBuilder
 from .meta_config_handler import MetaConfigHandler
 from .slack_interface.functions import SlackFunctions
@@ -50,6 +52,7 @@ class SlackTelescopeNode(FullNode):
     socket_mode = SlackSocketMode
     
     trust_only_first_contact = TrustOnlyFirstContact
+    edge_negotiation_handler = GatedEdgeNegotiationHandler
     
     deref_slack_user = DerefSlackUser
     deref_slack_message = DerefSlackMessage

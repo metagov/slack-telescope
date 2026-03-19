@@ -38,12 +38,16 @@ class DerefSlackMessage(DerefHandler):
         except SlackApiError as err:
             if err.response["error"] == "not_in_channel":
                 self.log.debug(f"joining channel {kwargs['channel']}")
-                self.slack_app.client.conversations_join(
-                    channel=kwargs["channel"]
-                )
+                try:
+                    self.slack_app.client.conversations_join(
+                        channel=kwargs["channel"]
+                    )
+                except SlackApiError as err:
+                    if err.response["error"] == "is_archived":
+                        return None
+                    else:
+                        raise err
                 return func(*args, **kwargs)
-            elif err.response["error"] == "is_archived":
-                return None
             else:
                 raise err
     

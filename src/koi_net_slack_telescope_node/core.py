@@ -1,9 +1,8 @@
 from koi_net.core import FullNode
 from slack_bolt import App
 from slack_sdk import WebClient
-
+from .cache_synchronizer import CacheSychronizer
 from .edge_negotiation_handler import GatedEdgeNegotiationHandler
-
 from .slack_interface.events import SlackEventHandler
 from .socket_mode import SlackSocketMode
 from .orchestrator import Orchestrator
@@ -61,3 +60,4 @@ class SlackTelescopeNode(FullNode):
     deref_telescoped = DerefTelescoped
 
     telescope_backfiller = TelescopeBackfiller
+    cache_synchronizer = CacheSychronizer

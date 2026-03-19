@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 
 from slack_sdk import WebClient
 from rid_lib.types import SlackMessage, SlackUser
-from rid_lib.ext import Bundle
 from koi_net.components import Effector, KobjQueue
 from koi_net.components.interfaces import ThreadedComponent
 

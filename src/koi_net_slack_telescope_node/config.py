@@ -35,7 +35,7 @@ class TelescopeConfig(BaseModel):
     bot_user_id: str | None = None
     team_id: str | None = None
     
-    allowed_nodes: list[KoiNetNode] | None = None
+    allowed_nodes: list[KoiNetNode] = []
 
 class SlackTelescopeNodeConfig(FullNodeConfig):
     koi_net: KoiNetConfig = KoiNetConfig(

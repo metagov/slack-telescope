@@ -46,6 +46,9 @@ class TelescopeBackfiller(ThreadedComponent):
             ts=message["ts"]
         )
         
+        if message_rid in self.config.telescope.disallowed_channels:
+            return
+        
         if PersistentMessage(message_rid).status is not MessageStatus.UNSET:
             return
         

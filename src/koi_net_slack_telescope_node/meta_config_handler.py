@@ -35,6 +35,3 @@ class MetaConfigHandler:
         if (not self.config.telescope.observatory_channel_id) or (not self.config.telescope.broadcast_channel_id):
             self.log.error("Missing required config: '/telescope/observatory_channel_id`, `/telescope/broadcast_channel_id`")
             self.shutdown_signal.set()
-            
-        if (not self.config.telescope.allowed_channels):
-            self.log.warning("There are no allowed channels set, messages will be unable to be processed")

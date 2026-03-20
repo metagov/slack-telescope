@@ -151,9 +151,15 @@ class Orchestrator:
             channel_id=self.config.telescope.observatory_channel_id
         )
         
-        if message.channel.channel_id not in self.config.telescope.allowed_channels:
-            self.log.debug("message not sent in allowed channel, ignoring")
-            return
+        if self.config.telescope.allowed_channels:
+            if message.channel_id not in self.config.telescope.allowed_channels:
+                self.log.debug("Ignoring message not sent in an allowed channel")
+                return
+        
+        if self.config.telescope.disallowed_channels:
+            if message.channel_id in self.config.telescope.disallowed_channels:
+                self.log.debug("Ignoring message sent in disallowed channel")
+                return
         
         if channel_data["is_archived"] == True:
             p_message.status = MessageStatus.UNREACHABLE

@@ -26,6 +26,7 @@ class TelescopeConfig(BaseModel):
     
     text_preview_char_limit: int = 500
     allowed_channels: list[str] = []
+    disallowed_channels: list[str] = []
     retraction_time_limit_days: int = 28
     
     use_socket_mode: bool = True

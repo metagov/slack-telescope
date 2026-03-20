@@ -65,7 +65,10 @@ class GatedEdgeNegotiationHandler(KnowledgeHandler):
             if edge_profile.status != EdgeStatus.PROPOSED:
                 return
             
-            if edge_profile.target not in self.config.telescope.allowed_nodes:
+            if edge_profile.target not in (
+                self.config.koi_net.first_contact.rid,
+                *self.config.telescope.allowed_nodes
+            ):
                 return
             
             self.log.debug("Handling edge negotiation")

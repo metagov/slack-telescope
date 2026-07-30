@@ -1,0 +1,41 @@
+display_information:
+  name: Telescope
+  description: A friendly consent based research collection tool!
+  long_description: When a research tags and requests one of your messages, you will receive a notification from this bot with the option to opt in or opt out of data collection. If you choose to opt in, you will be notified when future messages are collected and given the option to individually anonymize or retract them.
+features:
+  bot_user:
+    display_name: Telescope
+    always_online: false
+oauth_config:
+  scopes:
+    user:
+      - search:read
+    bot:
+      - channels:history
+      - channels:join
+      - channels:read
+      - chat:write
+      - files:write
+      - groups:history
+      - groups:read
+      - im:history
+      - im:read
+      - reactions:read
+      - reactions:write
+      - team:read
+      - users.profile:read
+      - users:read
+  pkce_enabled: false
+settings:
+  event_subscriptions:
+    bot_events:
+      - message.channels
+      - message.groups
+      - reaction_added
+      - reaction_removed
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false
+  is_mcp_enabled: false

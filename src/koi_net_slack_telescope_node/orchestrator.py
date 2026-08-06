@@ -9,7 +9,6 @@ from rid_lib import RID
 from rid_lib.types import SlackChannel, SlackMessage, SlackUser
 from slack_bolt import App
 
-from . import message_content
 from .rid_types import Telescoped
 from .slack_interface.functions import SlackFunctions
 from .slack_interface.block_builder import BlockBuilder
@@ -278,7 +277,7 @@ class Orchestrator:
                 self.slack_functions.update_msg(
                     p_message.retract_interaction, 
                     self.block_builder.end_retract_interaction_blocks(
-                        message, message_content.retract_success
+                        message, self.config.telescope.messages.retract_success
                     )
                 )
                 
@@ -295,7 +294,7 @@ class Orchestrator:
                 self.slack_functions.update_msg(
                     p_message.retract_interaction, 
                     self.block_builder.end_retract_interaction_blocks(
-                        message, message_content.anonymize_success
+                        message, self.config.telescope.messages.anonymize_success
                     )
                 )
                 
@@ -310,6 +309,6 @@ class Orchestrator:
             self.slack_functions.update_msg(
                 p_message.retract_interaction, 
                 self.block_builder.end_retract_interaction_blocks(
-                    message, message_content.retract_failure
+                    message, self.config.telescope.messages.retract_failure
                 )
             )

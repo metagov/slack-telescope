@@ -1,11 +1,31 @@
 display_information:
   name: Telescope
   description: A friendly consent based research collection tool!
-  long_description: When a research tags and requests one of your messages, you will receive a notification from this bot with the option to opt in or opt out of data collection. If you choose to opt in, you will be notified when future messages are collected and given the option to individually anonymize or retract them.
+  long_description: When a research tags and requests one of your messages, you
+    will receive a notification from this bot with the option to opt in or opt
+    out of data collection. If you choose to opt in, you will be notified when
+    future messages are collected and given the option to individually anonymize
+    or retract them.
 features:
   bot_user:
     display_name: Telescope
     always_online: false
+  slash_commands:
+    - command: /set-broadcast-channel
+      description: Assigns current channel to broadcast
+      should_escape: false
+    - command: /set-observatory-channel
+      description: Assigns current channel to observatory
+      should_escape: false
+    - command: /ping
+      description: Bot will respond if online
+      should_escape: false
+    - command: /join-public-channels
+      description: Bot attempts to join all public channels
+      should_escape: false
+    - command: /start-backfill
+      description: Begins backfill process for past Telescoped messages
+      should_escape: false
 oauth_config:
   scopes:
     user:
@@ -25,6 +45,7 @@ oauth_config:
       - team:read
       - users.profile:read
       - users:read
+      - commands
   pkce_enabled: false
 settings:
   event_subscriptions:

@@ -9,9 +9,7 @@ from koi_net.components import Effector, KobjQueue
 from koi_net.components.interfaces import ThreadedComponent
 
 from .consts import MessageStatus
-
 from .persistent import PersistentMessage
-
 from .orchestrator import Orchestrator
 from .config import SlackTelescopeNodeConfig
 
@@ -24,6 +22,7 @@ class TelescopeBackfiller(ThreadedComponent):
     effector: Effector
     orchestrator: Orchestrator
     config: SlackTelescopeNodeConfig
+    begin_backfill: threading.Event
     
     should_exit: threading.Event = field(init=False, default_factory=threading.Event)
     
@@ -35,9 +34,13 @@ class TelescopeBackfiller(ThreadedComponent):
     def stop(self):
         self.should_exit.set()
         super().stop()
-            
+        
     def run(self):
-        self.backfill_telescopes()
+        while not self.should_exit.is_set():
+            if self.begin_backfill.wait(0.1):
+                self.log.info("Starting backfill...")
+                self.begin_backfill.clear()
+                self.backfill_telescopes()
         
     def process_message(self, message: dict):
         message_rid = SlackMessage(

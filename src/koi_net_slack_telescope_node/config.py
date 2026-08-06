@@ -32,6 +32,7 @@ class TelescopeConfig(BaseModel):
     use_socket_mode: bool = True
     
     # set automatically
+    admin_user_id: str | None = None
     bot_user_id: str | None = None
     team_id: str | None = None
     

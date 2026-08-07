@@ -1,11 +1,7 @@
 display_information:
   name: Telescope
   description: A friendly consent based research collection tool!
-  long_description: When a research tags and requests one of your messages, you
-    will receive a notification from this bot with the option to opt in or opt
-    out of data collection. If you choose to opt in, you will be notified when
-    future messages are collected and given the option to individually anonymize
-    or retract them.
+  long_description: When a research tags and requests one of your messages, you will receive a notification from this bot with the option to opt in or opt out of data collection. If you choose to opt in, you will be notified when future messages are collected and given the option to individually anonymize or retract them.
 features:
   bot_user:
     display_name: Telescope
@@ -18,26 +14,41 @@ features:
       description: Assigns current channel to observatory
       should_escape: false
     - command: /ping
-      description: Bot will respond if online
+      description: Telescope will respond if online
       should_escape: false
-    - command: /join-public-channels
-      description: Bot attempts to join all public channels
+    - command: /add-to-public-channels
+      description: Adds Telescope to all public channels
       should_escape: false
-    - command: /start-backfill
-      description: Begins backfill process for past Telescoped messages
+    - command: /backfill-messages
+      description: Backfills past Telescope messages in channels the bot is in
+      should_escape: false
+    - command: /add-to-channel
+      description: Adds Telescope to specified channel, or current one if unspecified
+      usage_hint: "[channel]"
+      should_escape: true
+    - command: /remove-from-channel
+      description: Adds Telescope to specified channel, or current one if unspecified
+      usage_hint: "[channel]"
+      should_escape: true
+    - command: /list-channels
+      description: Returns a list of channels Telescope is in
       should_escape: false
 oauth_config:
   scopes:
     user:
+      - groups:write.invites
       - search:read
     bot:
+      - channels:manage
       - channels:history
       - channels:join
       - channels:read
       - chat:write
+      - commands
       - files:write
       - groups:history
       - groups:read
+      - groups:write
       - im:history
       - im:read
       - reactions:read
@@ -45,7 +56,6 @@ oauth_config:
       - team:read
       - users.profile:read
       - users:read
-      - commands
   pkce_enabled: false
 settings:
   event_subscriptions:

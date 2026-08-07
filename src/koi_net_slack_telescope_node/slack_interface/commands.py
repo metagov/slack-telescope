@@ -1,6 +1,6 @@
+import threading
 from dataclasses import dataclass
 from logging import Logger
-import threading
 
 from koi_net.components import ConfigProvider
 from slack_bolt import App
@@ -27,10 +27,10 @@ class SlackCommandHandler:
         self.slack_app.command("/ping")(self.handle_ping)
         self.slack_app.command("/set-observatory-channel")(self.handle_set_observatory)
         self.slack_app.command("/set-broadcast-channel")(self.handle_set_broadcast)
-        self.slack_app.command("/join-channel")(self.handle_join_channel)
-        self.slack_app.command("/leave-channel")(self.handle_leave_channel)
-        self.slack_app.command("/join-public-channels")(self.handle_join_public_channels)
-        self.slack_app.command("/start-backfill")(self.handle_backfill)
+        self.slack_app.command("/add-to-channel")(self.handle_add_to_channel)
+        self.slack_app.command("/remove-from-channel")(self.handle_remove_from_channel)
+        self.slack_app.command("/add-to-public-channels")(self.handle_add_to_public_channels)
+        self.slack_app.command("/backfill-messages")(self.handle_backfill_messages)
         self.slack_app.command("/list-channels")(self.handle_list_channels)
         
     def parse_channel_arg(self, command) -> str:
@@ -54,7 +54,7 @@ class SlackCommandHandler:
                 return True
             return False
         
-    def handle_leave_channel(self, ack, respond, command):
+    def handle_remove_from_channel(self, ack, respond, command):
         ack()
 
         channel_id = self.parse_channel_arg(command)
@@ -73,13 +73,13 @@ class SlackCommandHandler:
         except SlackApiError as err:
             respond(f"Failed to leave, error: `{err.response['error']}`")
 
-    def handle_join_channel(self, ack, respond, command):
+    def handle_add_to_channel(self, ack, respond, command):
         ack()
-
+        
         channel_id = self.parse_channel_arg(command)
         
         self.log.info(f"Attempting to join #{channel_id}...")
-
+        
         try:
             resp = self.slack_app.client.conversations_join(channel=channel_id)
             if resp.get("warning") == "already_in_channel":
@@ -102,14 +102,14 @@ class SlackCommandHandler:
                 respond(f"Failed to join, error: `{error}`")
 
         
-    def handle_backfill(self, ack, respond):
+    def handle_backfill_messages(self, ack, respond):
         ack()
         
         self.begin_backfill.set()
         
         respond("Started backfill!")
         
-    def handle_join_public_channels(self, ack, respond):
+    def handle_add_to_public_channels(self, ack, respond):
         ack()
         
         channels = self.slack_app.client.conversations_list().get("channels")

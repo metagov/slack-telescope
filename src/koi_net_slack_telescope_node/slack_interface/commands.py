@@ -25,9 +25,23 @@ class SlackCommandHandler:
         self.slack_app.command("/ping")(self.handle_ping)
         self.slack_app.command("/set-observatory-channel")(self.handle_set_observatory)
         self.slack_app.command("/set-broadcast-channel")(self.handle_set_broadcast)
+        self.slack_app.command("/join-channel")(self.handle_join_channel)
+        self.slack_app.command("/leave-channel")(self.handle_leave_channel)
         self.slack_app.command("/join-public-channels")(self.handle_join_public_channels)
         self.slack_app.command("/start-backfill")(self.handle_backfill)
+        self.slack_app.command("/list-channels")(self.handle_list_channels)
         
+    def parse_channel_arg(self, command) -> str:
+        text = command.get("text", "").strip()
+        if not text:
+            return command["channel_id"]
+
+        # handle Slack's rich channel mention format, eg. <#C0123456789|general>
+        if text.startswith("<#") and text.endswith(">"):
+            return text[2:-1].split("|")[0]
+
+        return text
+
     def join_channel(self, channel_id: str) -> bool:
         try:
             self.slack_app.client.conversations_join(channel=channel_id)
@@ -37,6 +51,39 @@ class SlackCommandHandler:
             if error == "already_in_channel":
                 return True
             return False
+        
+    def handle_leave_channel(self, ack, respond, command):
+        ack()
+
+        channel_id = self.parse_channel_arg(command)
+
+        if channel_id == self.config.telescope.broadcast_channel_id:
+            respond("Can't leave the broadcast channel!")
+            return
+
+        elif channel_id == self.config.telescope.observatory_channel_id:
+            respond("Can't leave the observatory channel!")
+            return
+
+        try:
+            self.slack_app.client.conversations_leave(channel=channel_id)
+            respond(f"Successfully left <#{channel_id}>")
+        except SlackApiError as err:
+            respond(f"Failed to leave, error: `{err.response['error']}`")
+
+    def handle_join_channel(self, ack, respond, command):
+        ack()
+
+        channel_id = self.parse_channel_arg(command)
+
+        try:
+            resp = self.slack_app.client.conversations_join(channel=channel_id)
+            if resp.get("warning") == "already_in_channel":
+                respond("Already a member of this channel!")
+            else:
+                respond(f"Successfully joined <#{channel_id}>")
+        except SlackApiError as err:
+            respond(f"Failed to join, error: `{err.response['error']}`")
         
     def handle_backfill(self, ack, respond):
         ack()
@@ -119,6 +166,29 @@ class SlackCommandHandler:
             initial_comment="Exported data."
         )
         
+    def handle_list_channels(self, ack, respond):
+        ack()
+
+        member_channels = []
+        cursor = None
+        while True:
+            resp = self.slack_app.client.conversations_list(
+                types="public_channel,private_channel",
+                exclude_archived=True,
+                cursor=cursor,
+            )
+            member_channels.extend(c for c in resp.get("channels", []) if c.get("is_member"))
+            cursor = resp.get("response_metadata", {}).get("next_cursor")
+            if not cursor:
+                break
+
+        if not member_channels:
+            respond("I'm not in any channels")
+            return
+
+        channel_list = "\n".join(f"• <#{c['id']}>" for c in member_channels)
+        respond(text=f"Telescope is in {len(member_channels)} channel(s):\n{channel_list}")
+
     def handle_ping(self, ack, respond):
         ack()
         respond(text="Pong!")

@@ -32,6 +32,7 @@ class SlackCommandHandler:
         self.slack_app.command("/add-to-public-channels")(self.handle_add_to_public_channels)
         self.slack_app.command("/backfill-messages")(self.handle_backfill_messages)
         self.slack_app.command("/list-channels")(self.handle_list_channels)
+        self.slack_app.command("/activate")(self.handle_activate)
         
     def parse_channel_arg(self, command) -> str:
         text = command.get("text", "").strip()
@@ -43,6 +44,12 @@ class SlackCommandHandler:
             return text[2:-1].split("|")[0]
 
         return text
+
+    def is_admin(self, command, respond) -> bool:
+        if command["user_id"] != self.config.telescope.admin_user_id:
+            respond("Sorry, you're not authorized to run this command :/")
+            return False
+        return True
 
     def join_channel(self, channel_id: str) -> bool:
         try:
@@ -56,6 +63,9 @@ class SlackCommandHandler:
         
     def handle_remove_from_channel(self, ack, respond, command):
         ack()
+
+        if not self.is_admin(command, respond):
+            return
 
         channel_id = self.parse_channel_arg(command)
 
@@ -75,7 +85,10 @@ class SlackCommandHandler:
 
     def handle_add_to_channel(self, ack, respond, command):
         ack()
-        
+
+        if not self.is_admin(command, respond):
+            return
+
         channel_id = self.parse_channel_arg(command)
         
         self.log.info(f"Attempting to join #{channel_id}...")
@@ -102,16 +115,26 @@ class SlackCommandHandler:
                 respond(f"Failed to join, error: `{error}`")
 
         
-    def handle_backfill_messages(self, ack, respond):
+    def handle_backfill_messages(self, ack, respond, command):
         ack()
-        
+
+        if not self.is_admin(command, respond):
+            return
+
+        if not self.config.telescope.started:
+            respond("Telescope hasn't been activated yet, run /activate first")
+            return
+
         self.begin_backfill.set()
-        
+
         respond("Started backfill!")
         
-    def handle_add_to_public_channels(self, ack, respond):
+    def handle_add_to_public_channels(self, ack, respond, command):
         ack()
-        
+
+        if not self.is_admin(command, respond):
+            return
+
         channels = self.slack_app.client.conversations_list().get("channels")
         if not channels:
             respond("Couldn't find any channels to join")
@@ -137,8 +160,7 @@ class SlackCommandHandler:
     def handle_set_observatory(self, ack, command, respond):
         ack()
 
-        if command["user_id"] != self.config.telescope.admin_user_id:
-            respond("Sorry, you're not authorized to run this command :/")
+        if not self.is_admin(command, respond):
             return
 
         channel_id = command["channel_id"]
@@ -153,8 +175,7 @@ class SlackCommandHandler:
     def handle_set_broadcast(self, ack, command, respond):
         ack()
 
-        if command["user_id"] != self.config.telescope.admin_user_id:
-            respond("Sorry, you're not authorized to run this command :/")
+        if not self.is_admin(command, respond):
             return
 
         channel_id = command["channel_id"]
@@ -166,9 +187,30 @@ class SlackCommandHandler:
         self.config.save_to_yaml()
         respond(text=f"Set broadcast channel to <#{channel_id}>")
 
-    def handle_export_command(self, ack, command, say):
+    def handle_activate(self, ack, command, respond):
         ack()
-        
+
+        if not self.is_admin(command, respond):
+            return
+
+        if not self.config.telescope.observatory_channel_id:
+            respond("Can't activate, observatory channel isn't set. Run /set-observatory-channel first")
+            return
+
+        if not self.config.telescope.broadcast_channel_id:
+            respond("Can't activate, broadcast channel isn't set. Run /set-broadcast-channel first")
+            return
+
+        self.config.telescope.started = True
+        self.config.save_to_yaml()
+        respond("Telescope activated!")
+
+    def handle_export_command(self, ack, command, respond, say):
+        ack()
+
+        if not self.is_admin(command, respond):
+            return
+
         self.slack_app.client.chat_postMessage(
             channel=command["channel_id"],
             text="Beginning export... (this might take a few moments!)"
@@ -183,8 +225,11 @@ class SlackCommandHandler:
             initial_comment="Exported data."
         )
         
-    def handle_list_channels(self, ack, respond):
+    def handle_list_channels(self, ack, respond, command):
         ack()
+
+        if not self.is_admin(command, respond):
+            return
 
         member_channels = []
         cursor = None
@@ -206,6 +251,10 @@ class SlackCommandHandler:
         channel_list = "\n".join(f"• <#{c['id']}>" for c in member_channels)
         respond(text=f"Telescope is in {len(member_channels)} channel(s):\n{channel_list}")
 
-    def handle_ping(self, ack, respond):
+    def handle_ping(self, ack, respond, command):
         ack()
+
+        if not self.is_admin(command, respond):
+            return
+
         respond(text="Pong!")

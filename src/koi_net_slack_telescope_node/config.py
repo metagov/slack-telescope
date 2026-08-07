@@ -46,6 +46,8 @@ class TelescopeConfig(BaseModel):
     
     observatory_channel_id: str | None = None
     broadcast_channel_id: str | None = None
+
+    started: bool = False
     
     text_preview_char_limit: int = 500
     allowed_channels: list[str] = []

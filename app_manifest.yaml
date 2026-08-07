@@ -33,6 +33,9 @@ features:
     - command: /list-channels
       description: Returns a list of channels Telescope is in
       should_escape: false
+    - command: /activate
+      description: Activates Telescope, enabling emoji tagging and backfill
+      should_escape: false
 oauth_config:
   scopes:
     user:

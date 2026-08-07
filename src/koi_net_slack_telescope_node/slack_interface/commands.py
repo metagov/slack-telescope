@@ -4,6 +4,7 @@ import threading
 
 from koi_net.components import ConfigProvider
 from slack_bolt import App
+from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from ..config import SlackTelescopeNodeConfig
 from ..export import Exporter
@@ -13,6 +14,7 @@ from ..export import Exporter
 class SlackCommandHandler:
     log: Logger
     slack_app: App
+    slack_user_client: WebClient
     exporter: Exporter
     config: SlackTelescopeNodeConfig | ConfigProvider
     begin_backfill: threading.Event
@@ -75,6 +77,8 @@ class SlackCommandHandler:
         ack()
 
         channel_id = self.parse_channel_arg(command)
+        
+        self.log.info(f"Attempting to join #{channel_id}...")
 
         try:
             resp = self.slack_app.client.conversations_join(channel=channel_id)
@@ -83,7 +87,20 @@ class SlackCommandHandler:
             else:
                 respond(f"Successfully joined <#{channel_id}>")
         except SlackApiError as err:
-            respond(f"Failed to join, error: `{err.response['error']}`")
+            error = err.response["error"]
+            if error == "channel_not_found":
+                self.log.info("Channel not found, attempting private invite")
+                try:
+                    self.slack_user_client.conversations_invite(
+                        channel=channel_id,
+                        users=[self.config.telescope.bot_user_id]
+                    )
+                    respond(f"Successfully joined <#{channel_id}>")
+                except SlackApiError as err:
+                    respond(f"Failed to join, error: `{err.response["error"]}`")
+            else:
+                respond(f"Failed to join, error: `{error}`")
+
         
     def handle_backfill(self, ack, respond):
         ack()

@@ -26,7 +26,7 @@ class MetaConfigHandler:
         bot_user_id = bot_auth.get("user_id")
         
         user_auth = self.slack_user_client.auth_test()
-        self.log.info(f"Logged in as {user_auth.get('user_auth')}")
+        self.log.info(f"Logged in as {user_auth.get('user')}")
         admin_user_id = user_auth.get("user_id")
         
         if not team_id or not bot_user_id:

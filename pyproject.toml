@@ -1,6 +1,6 @@
 [project]
 name = "koi-net-slack-telescope-node"
-version = "0.1.0"
+version = "0.2.0"
 description = "Implementation of KOI-net Slack Telescope node"
 authors = [
     {name = "Luke Miller", email = "luke@block.science"}

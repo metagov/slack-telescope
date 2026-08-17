@@ -69,6 +69,9 @@ class SlackEventHandler:
                 self.effector.deref(Telescoped(p_msg.rid), refresh_cache=True)
         
         elif emoji_str == self.config.telescope.emoji:
+            if not self.config.telescope.started:
+                return
+
             self.log.debug("got a reaction")
             tagger = SlackUser(team_id, event["user"])
             author = SlackUser(team_id, event["item_user"])

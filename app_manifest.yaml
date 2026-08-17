@@ -6,18 +6,52 @@ features:
   bot_user:
     display_name: Telescope
     always_online: false
+  slash_commands:
+    - command: /set-broadcast-channel
+      description: Assigns current channel to broadcast
+      should_escape: false
+    - command: /set-observatory-channel
+      description: Assigns current channel to observatory
+      should_escape: false
+    - command: /ping
+      description: Telescope will respond if online
+      should_escape: false
+    - command: /add-to-public-channels
+      description: Adds Telescope to all public channels
+      should_escape: false
+    - command: /backfill-messages
+      description: Backfills past Telescope messages in channels the bot is in
+      should_escape: false
+    - command: /add-to-channel
+      description: Adds Telescope to specified channel, or current one if unspecified
+      usage_hint: "[channel]"
+      should_escape: true
+    - command: /remove-from-channel
+      description: Adds Telescope to specified channel, or current one if unspecified
+      usage_hint: "[channel]"
+      should_escape: true
+    - command: /list-channels
+      description: Returns a list of channels Telescope is in
+      should_escape: false
+    - command: /activate
+      description: Activates Telescope, enabling emoji tagging and backfill
+      should_escape: false
 oauth_config:
   scopes:
     user:
+      - groups:write.invites
       - search:read
     bot:
+      - channels:manage
       - channels:history
       - channels:join
       - channels:read
       - chat:write
+      - commands
       - files:write
       - groups:history
       - groups:read
+      - groups:write
       - im:history
       - im:read
       - reactions:read

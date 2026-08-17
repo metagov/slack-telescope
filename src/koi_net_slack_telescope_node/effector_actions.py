@@ -37,7 +37,12 @@ class DerefSlackMessage(DerefHandler):
         try:
             return func(*args, **kwargs)
         except SlackApiError as err:
-            if err.response["error"] == "not_in_channel":
+            error = err.response["error"]
+            
+            if error == "not_in_channel":
+                self.log.warning("Not in channel, dereference failed")
+                return
+
                 self.log.debug(f"joining channel {kwargs['channel']}")
                 try:
                     self.slack_app.client.conversations_join(
@@ -50,14 +55,20 @@ class DerefSlackMessage(DerefHandler):
                     else:
                         raise err
                 return func(*args, **kwargs)
-            elif err.response["error"] == "ratelimited":
+            
+            elif error == "channel_not_found":
+                self.log.warning("Channel not found, dereference failed")
+                return
+            
+            elif error == "ratelimited":
                 retry_after = int(err.response.headers["Retry-After"])
                 self.log.info(f"timed out, waiting {retry_after} seconds")
                 time.sleep(retry_after)
                 return self.join_and_retry_on_err(
                     func=func, *args, **kwargs)
             else:
-                raise err
+                self.log.warning(f"Unhandled error: {error}")
+                return
     
     def handle(self, rid: SlackMessage):
         resp = self.join_and_retry_on_err(

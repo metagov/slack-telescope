@@ -8,7 +8,6 @@ from rid_lib.types import SlackMessage, SlackUser
 from ..config import SlackTelescopeNodeConfig
 from ..consts import ActionId, BlockId, request_status_display
 from ..persistent import PersistentMessage
-from .. import message_content
 
 
 def text_obj(text: str, type="plain_text"):
@@ -108,12 +107,12 @@ class BlockBuilder:
         
     def build_consent_msg_ref(self, message: SlackMessage):
         return section_block(
-            text_obj(message_content.consent_ui_msg_header + f"\n{self.format_text(message)}", type="mrkdwn")
+            text_obj(self.config.telescope.messages.consent_ui_msg_header + f"\n{self.format_text(message)}", type="mrkdwn")
         )
 
     def build_retract_msg_ref(self, message: SlackMessage):
         return section_block(
-            text_obj(message_content.retract_ui_msg_header + f"\n{self.format_text(message)}", type="mrkdwn")
+            text_obj(self.config.telescope.messages.retract_ui_msg_header + f"\n{self.format_text(message)}", type="mrkdwn")
         )
         
     def build_broadcast_msg_ref(self, message: SlackMessage):
@@ -207,7 +206,7 @@ class BlockBuilder:
     # welcome message with consent disclaimer
     def consent_welcome_msg_blocks(self):
         return [
-            self.build_basic_section(message_content.consent_ui_welcome),
+            self.build_basic_section(self.config.telescope.messages.consent_ui_welcome),
         ]
 
     # preview of first message requested and consent interaction

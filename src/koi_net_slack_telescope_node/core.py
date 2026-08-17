@@ -1,3 +1,5 @@
+import threading
+
 from koi_net.core import FullNode
 from slack_bolt import App
 from slack_sdk import WebClient
@@ -59,5 +61,6 @@ class SlackTelescopeNode(FullNode):
     deref_slack_workspace = DerefSlackWorkspace
     deref_telescoped = DerefTelescoped
 
+    begin_backfill = threading.Event
     telescope_backfiller = TelescopeBackfiller
     cache_synchronizer = CacheSychronizer
